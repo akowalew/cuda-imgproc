@@ -35,5 +35,5 @@ There is only one app in the project: `process-image`. Its purpose is to process
 
 ## Authors:
 
-[akowalew](https://github.com/akowalew)
-[Lasica](https://github.com/Lasica)
+- [akowalew](https://github.com/akowalew)
+- [Lasica](https://github.com/Lasica)
