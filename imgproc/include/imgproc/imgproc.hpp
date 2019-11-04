@@ -1,0 +1,18 @@
+///////////////////////////////////////////////////////////////////////////////
+// imgproc.hpp
+//
+// Contains global declarations for imgproc library
+//
+// Author: akowalew (ram.techen@gmail.com)
+// Date: 4.11.2019 18:31 CEST
+///////////////////////////////////////////////////////////////////////////////
+
+#pragma once
+
+namespace imgproc {
+
+void init();
+
+void deinit();
+
+} // namespace imgproc
