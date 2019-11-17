@@ -28,7 +28,8 @@ endif()
 # Conan integration
 ###############################################################################
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+find_file(CONANBUILDINFO_FILE conanbuildinfo.cmake HINTS ${CMAKE_BINARY_DIR})
+include(${CONANBUILDINFO_FILE})
 conan_basic_setup()
 
 ###############################################################################
