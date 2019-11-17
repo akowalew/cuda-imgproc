@@ -11,6 +11,27 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 project(cuda-imgproc VERSION 0.1.0 LANGUAGES CXX #[[CUDA]])
 
 ###############################################################################
+# Global options
+###############################################################################
+
+option(BUILD_TESTING "Whether to build tests or not" ON)
+
+###############################################################################
+# Project global options
+###############################################################################
+
+if(BUILD_TESTING)
+	enable_testing()
+endif()
+
+###############################################################################
+# Conan integration
+###############################################################################
+
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
+
+###############################################################################
 # External packages
 ###############################################################################
 
@@ -22,6 +43,8 @@ find_package(OpenCV REQUIRED
     	opencv_highgui
     	opencv_imgcodecs
 )
+
+find_package(doctest REQUIRED)
 
 ###############################################################################
 # Project's targets

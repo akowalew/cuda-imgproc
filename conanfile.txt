@@ -1,0 +1,14 @@
+###############################################################################
+# conanfile.txt
+#
+# Specifies dependencies for project and its configuration
+#
+# Author: akowalew (ram.techen@gmail.com)
+# Date: 16.11.2019 16:16 CEST
+###############################################################################
+
+[requires]
+	doctest/2.3.4@bincrafters/stable
+
+[generators]
+	cmake
