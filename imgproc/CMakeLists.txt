@@ -20,6 +20,7 @@ option(IMGPROC_BUILD_TESTS "Whether to build tests for imgproc library" ON)
 add_library(imgproc
     src/format.cpp
     src/imgproc.cpp
+    src/filter.cpp
 )
 
 target_include_directories(imgproc

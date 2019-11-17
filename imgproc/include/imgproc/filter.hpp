@@ -1,16 +1,18 @@
 ///////////////////////////////////////////////////////////////////////////////
-// format.hpp
+// filter.hpp
 //
-// Contains declarations of functions related to image format conversions.
+// Contains declarations of functions related to image filtering
 //
 // Author: akowalew (ram.techen@gmail.com)
-// Date: 17.11.2019 17:17 CEST
+// Date: 17.11.2019 17:19 CEST
 ///////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
 namespace imgproc {
 
-void bgr888_to_hsv888(const unsigned char* bgr, unsigned char* hsv, int cols, int rows);
+void filter2d_888(const unsigned char* src, unsigned char* dst,
+	int ncols, int nrows,
+	const float* kernel, int kernel_size);
 
 } // namespace imgproc
