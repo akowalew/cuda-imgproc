@@ -8,14 +8,20 @@
 ###############################################################################
 
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
-project(cuda-imgproc VERSION 0.1.0 LANGUAGES CXX CUDA)
+project(cuda-imgproc VERSION 0.1.0 LANGUAGES CXX #[[CUDA]])
 
 ###############################################################################
 # External packages
 ###############################################################################
 
 find_package(OpenCV REQUIRED
-    COMPONENTS opencv_core opencv_imgproc opencv_videoio opencv_highgui opencv_imgcodecs)
+    COMPONENTS
+    	opencv_core
+    	opencv_imgproc
+    	opencv_videoio
+    	opencv_highgui
+    	opencv_imgcodecs
+)
 
 ###############################################################################
 # Project's targets
