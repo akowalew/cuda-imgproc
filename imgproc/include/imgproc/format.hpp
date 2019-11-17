@@ -11,6 +11,6 @@
 
 namespace imgproc {
 
-void bgr888_to_hsv888(const unsigned char* bgr, unsigned char* hsv, int cols, int rows);
+void bgr888_to_hsv888(const unsigned char* bgr, unsigned char* hsv, int rows, int ncols);
 
 } // namespace imgproc

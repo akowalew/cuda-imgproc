@@ -9,6 +9,8 @@
 
 add_executable(process-image
     src/main.cpp
+
+    src/ImageProcessor.cpp
 )
 
 target_compile_options(process-image
@@ -30,4 +32,10 @@ target_link_libraries(process-image
     PRIVATE
         imgproc
         ${OpenCV_LIBS}
+)
+
+target_include_directories(process-image
+    PRIVATE
+        include
+        src
 )

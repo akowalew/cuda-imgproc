@@ -15,12 +15,12 @@
 
 namespace imgproc {
 
-void bgr888_to_hsv888(const unsigned char* bgr, unsigned char* hsv, int cols, int rows)
+void bgr888_to_hsv888(const unsigned char* bgr, unsigned char* hsv, int rows, int cols)
 {
     assert(hsv != nullptr);
     assert(bgr != nullptr);
-    assert(cols > 0);
     assert(rows > 0);
+    assert(cols > 0);
 
     const auto type = CV_8UC3;
     const auto bgr_mat = cv::Mat(rows, cols, type, const_cast<unsigned char*>(bgr));
