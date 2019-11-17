@@ -11,22 +11,22 @@
 # Test executable definition
 ###############################################################################
 
-add_executable(imgproc_test
+add_executable(imgproc-test
     test_main.cpp
 )
 
-target_link_libraries(imgproc_test
+target_link_libraries(imgproc-test
     PRIVATE
         imgproc
         doctest::doctest
 )
 
-set_target_properties(imgproc_test
+set_target_properties(imgproc-test
     PROPERTIES
         CXX_STANDARD 14
 )
 
-target_compile_options(imgproc_test
+target_compile_options(imgproc-test
     PRIVATE
         $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -pedantic>
 )
@@ -35,6 +35,6 @@ target_compile_options(imgproc_test
 # Test definition
 ###############################################################################
 
-add_test(imgproc_test
-    ${CMAKE_BINARY_DIR}/bin/imgproc_test
+add_test(imgproc-test
+    ${CMAKE_BINARY_DIR}/bin/imgproc-test
 )
