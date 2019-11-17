@@ -18,9 +18,11 @@ option(IMGPROC_BUILD_TESTS "Whether to build tests for imgproc library" ON)
 ###############################################################################
 
 add_library(imgproc
-    src/format.cpp
     src/imgproc.cpp
+
+    src/histogram.cpp
     src/filter.cpp
+    src/format.cpp
 )
 
 target_include_directories(imgproc

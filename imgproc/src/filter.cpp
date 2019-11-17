@@ -15,14 +15,14 @@
 
 namespace imgproc {
 
-void filter2d_888(const unsigned char* src, unsigned char* dst,
+void filter2d_8(const unsigned char* src, unsigned char* dst,
 	int ncols, int nrows,
 	const float* kernel, int kernel_size)
 {
 	assert(src != nullptr);
 	assert(dst != nullptr);
 
-	const auto type = CV_8UC3;
+	const auto type = CV_8UC1;
 	const auto src_mat = cv::Mat(nrows, ncols, type, const_cast<unsigned char*>(src));
 	auto dst_mat = cv::Mat(nrows, ncols, type, dst);
 

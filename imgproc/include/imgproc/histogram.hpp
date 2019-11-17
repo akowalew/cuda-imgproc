@@ -1,18 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
-// filter.hpp
+// histogram.hpp
 //
-// Contains declarations of functions related to image filtering
+// Contains declarations of functions working on images histograms
 //
 // Author: akowalew (ram.techen@gmail.com)
-// Date: 17.11.2019 17:19 CEST
+// Date: 17.11.2019 20:24 CEST
 ///////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
 namespace imgproc {
 
-void filter2d_8(const unsigned char* src, unsigned char* dst,
-	int ncols, int nrows,
-	const float* kernel, int kernel_size);
+void equalize_hist_8(const unsigned char* src, unsigned char* dst, int length);
 
 } // namespace imgproc
