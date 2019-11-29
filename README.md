@@ -20,7 +20,7 @@ In order to build project, you will need following stuff:
 In order to compile the project, type in terminal:
 
 ```sh
-	# Create out-of-source build directory
+    # Create out-of-source build directory
     mkdir -p build
     cd build/
 
@@ -29,9 +29,9 @@ In order to compile the project, type in terminal:
 
     # Configure build system
     cmake ../ \
-    	-DCMAKE_BUILD_TYPE=<Release/Debug>	# Build type optimization
-    	-DBUILD_TESTING=<ON/OFF>			# Whether to enable testing or not
-    	-DIMGPROC_BUILD_TESTS=<ON/OFF>		# Whether to build tests for imgproc or not
+    	-DCMAKE_BUILD_TYPE=<Release/Debug> \		# Build type optimization
+    	-DBUILD_TESTING=<ON/OFF> \			# Whether to enable testing or not
+    	-DIMGPROC_BUILD_TESTS=<ON/OFF> \		# Whether to build tests for imgproc or not
 
     # Compile everything
     make -j${nproc}
