@@ -9,6 +9,7 @@
 
 #include <cstdio>
 
+#include "debug.hpp"
 #include "processor.hpp"
 #include "reader.hpp"
 #include "writer.hpp"
