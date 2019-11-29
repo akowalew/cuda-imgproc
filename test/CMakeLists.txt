@@ -18,7 +18,6 @@ add_executable(imgproc-test
 target_link_libraries(imgproc-test
     PRIVATE
         imgproc
-        doctest::doctest
 )
 
 set_target_properties(imgproc-test

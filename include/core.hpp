@@ -9,14 +9,10 @@
 
 #pragma once
 
-namespace imgproc {
+#include <array>
 
-void split_888(int nrows, int ncols,
-	const unsigned char* src,
-	unsigned char* x, unsigned char* y, unsigned char* z);
+#include "image.hpp"
 
-void merge_888(int nrows, int ncols,
-	const unsigned char* src_x, const unsigned char* src_y, const unsigned char* src_z,
-	unsigned char* dst);
+void split_888(const Image& src, std::array<Image, 3>& dst);
 
-} // namespace imgproc
+void merge_888(const std::array<Image, 3>& src, Image& dst);

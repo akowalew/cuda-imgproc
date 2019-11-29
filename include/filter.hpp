@@ -9,10 +9,6 @@
 
 #pragma once
 
-namespace imgproc {
+#include "image.hpp"
 
-void filter2d_8(int nrows, int ncols,
-	const unsigned char* src, unsigned char* dst,
-	const float* kernel, int kernel_size);
-
-} // namespace imgproc
+void filter2d_8(const Image& src, Image& dst, const Image& kernel);

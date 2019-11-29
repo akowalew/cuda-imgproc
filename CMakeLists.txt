@@ -28,6 +28,7 @@ endif()
 # Conan integration
 ###############################################################################
 
+# Include output of conan installation
 find_file(CONANBUILDINFO_FILE conanbuildinfo.cmake HINTS ${CMAKE_BINARY_DIR})
 include(${CONANBUILDINFO_FILE})
 conan_basic_setup()
@@ -45,11 +46,75 @@ find_package(OpenCV REQUIRED
     	opencv_imgcodecs
 )
 
-find_package(doctest REQUIRED)
+if(BUILD_TESTING)
+	# We need this framework only when testing
+	find_package(doctest REQUIRED)
+endif()
 
 ###############################################################################
-# Project's targets
+# Global options
 ###############################################################################
 
-add_subdirectory(imgproc)
-add_subdirectory(process-image)
+# Set global warning levels
+if(GNU)
+	add_compile_options(
+		-Wall -Wextra -pedantic
+	)
+endif()
+
+# Set global include directory
+include_directories(include)
+
+# Require C++17 standard without platform extensions
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+###############################################################################
+# Common object files
+###############################################################################
+
+# Define quasi-library contained only from object files
+add_library(common OBJECT
+	src/core.cpp
+	src/debug.cpp
+	src/filter.cpp
+	src/hist.cpp
+	src/median.cpp
+	src/processor.cpp
+	src/reader.cpp
+	src/writer.cpp
+)
+
+target_link_libraries(common
+	PUBLIC
+		${OpenCV_LIBRARIES}
+)
+
+###############################################################################
+# Main executable
+###############################################################################
+
+add_executable(process-image
+	src/main.cpp
+)
+
+target_link_libraries(process-image
+	PRIVATE
+		common
+)
+
+###############################################################################
+# Unit tests
+###############################################################################
+
+add_executable(process-image-test
+	test/test_main.cpp
+)
+
+target_link_libraries(process-image-test
+	PRIVATE
+		common
+
+        doctest::doctest
+)

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// histogram.hpp
+// hist.hpp
 //
 // Contains declarations of functions working on images histograms
 //
@@ -9,8 +9,7 @@
 
 #pragma once
 
-namespace imgproc {
+#include "image.hpp"
 
-void equalize_hist_8(const unsigned char* src, unsigned char* dst, int length);
+void equalize_hist_8(const Image& src, Image& dst);
 
-} // namespace imgproc

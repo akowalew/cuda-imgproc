@@ -1,0 +1,16 @@
+///////////////////////////////////////////////////////////////////////////////
+// debug.hpp
+//
+// Contains declaration of image debug functions
+//
+// Author: akowalew (ram.techen@gmail.com)
+// Date: 29.11.2019 1:17 CEST
+///////////////////////////////////////////////////////////////////////////////
+
+#pragma once
+
+#include "image.hpp"
+
+void show_image(const char* name, Image image);
+
+void wait_for_exit();

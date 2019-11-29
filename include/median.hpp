@@ -1,18 +1,14 @@
 ///////////////////////////////////////////////////////////////////////////////
-// imgproc.hpp
+// median.hpp
 //
-// Contains global declarations for imgproc library
+// Contains declarations of functions related to median image filtering
 //
 // Author: akowalew (ram.techen@gmail.com)
-// Date: 4.11.2019 18:31 CEST
+// Date: 28.11.2019 23:22 CEST
 ///////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
-namespace imgproc {
+#include "image.hpp"
 
-void init();
-
-void deinit();
-
-} // namespace imgproc
+void median2d_8(const Image& src, Image& dst, int kernel_size);
