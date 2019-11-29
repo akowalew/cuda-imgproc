@@ -9,7 +9,6 @@
 
 #include <cstdio>
 
-#include "debug.hpp"
 #include "processor.hpp"
 #include "reader.hpp"
 #include "writer.hpp"
@@ -39,12 +38,11 @@ int main(int argc, char** argv)
     try
     {
         const auto src_image = read_image(input_path);
-        show_image("src_image", src_image);
 
         const auto dst_image = process_image(src_image);
-        show_image("dst_image", dst_image);
 
         write_image(output_path, dst_image);
+
         wait_for_exit();
     }
     catch(std::exception& ex)
