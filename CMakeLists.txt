@@ -28,10 +28,13 @@ endif()
 # Conan integration
 ###############################################################################
 
-# Include output of conan installation
-find_file(CONANBUILDINFO_FILE conanbuildinfo.cmake HINTS ${CMAKE_BINARY_DIR})
-include(${CONANBUILDINFO_FILE})
-conan_basic_setup()
+# At the moment, Conan is useful only when building tests
+if(BUILD_TESTING)
+    # Include output of conan installation
+    find_file(CONANBUILDINFO_FILE conanbuildinfo.cmake HINTS ${CMAKE_BINARY_DIR})
+    include(${CONANBUILDINFO_FILE})
+    conan_basic_setup()
+endif()
 
 ###############################################################################
 # External packages
@@ -108,13 +111,15 @@ target_link_libraries(process-image
 # Unit tests
 ###############################################################################
 
-add_executable(process-image-test
-	test/test_main.cpp
-)
+if(BUILD_TESTING)
+    add_executable(process-image-test
+	    test/test_main.cpp
+    )
 
-target_link_libraries(process-image-test
-	PRIVATE
-		common
+    target_link_libraries(process-image-test
+	    PRIVATE
+		    common
 
-        doctest::doctest
-)
+            doctest::doctest
+    )
+endif()
