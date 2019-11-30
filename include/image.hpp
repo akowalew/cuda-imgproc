@@ -19,3 +19,5 @@ using ImageU8 = cv::Mat_<unsigned char>;
 //! Image template instantiation - 32-bit float image
 using Image32F = cv::Mat_<float>;
 
+//! Image template instantiation - 8-bit mono-color image
+using GrayImageU8 = cv::Mat;
