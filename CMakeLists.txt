@@ -87,6 +87,7 @@ add_library(common OBJECT
 	src/processor.cpp
 	src/reader.cpp
 	src/writer.cpp
+  src/timer.cpp
 )
 
 target_link_libraries(common
