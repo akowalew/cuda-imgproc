@@ -2,9 +2,15 @@
 
 Studies project - CUDA implementation of some image processing algorithms.
 
-It consists of two main targets:
- - `imgproc` library - The place where all calculations take place. At the moment, implemented as forwarding calls to OpenCV, but the target is to implement it using CUDA
- - `process-image` application - simple app which uses `imgproc` library to process some images, which are read using OpenCV.
+It consists of `process-image` target. This is a simple app to process some images, which are read using OpenCV and then written to hard disk. 
+Image processing algorithm consists of five phases:
+ - splitting BGR i to separate components
+ - median filtering on each component
+ - gaussian blurring on each component
+ - histogram equalization on each component
+ - merging B, G, R components into final image. 
+
+Most of the algorithms should be written manually. Only image reading / writing is done using OpenCV. 
 
 ## Requirements
 
@@ -14,6 +20,8 @@ In order to build project, you will need following stuff:
  - `CMake`, at least 3.10
  - `OpenCV`
  - `Conan`, at least 1.10.1
+
+OpenCV and CUDA runtime is desired to be installed on host system. Other libraries are managed using Conan package manager. 
 
 ## Compilation
 
