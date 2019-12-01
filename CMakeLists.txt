@@ -148,6 +148,11 @@ if(GNU)
     )
 endif()
 
+if(BUILD_VERSION==cpuparallel)
+    find_package(OpenMP REQUIRED)
+    target_link_libraries(common PRIVATE OpenMP::OpenMP_CXX)
+endif()
+
 ###############################################################################
 # Main executable
 ###############################################################################
