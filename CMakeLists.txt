@@ -15,6 +15,9 @@ project(cuda-imgproc VERSION 0.1.0 LANGUAGES CXX #[[CUDA]])
 ###############################################################################
 
 option(BUILD_TESTING "Whether to build tests or not" ON)
+option(BUILD_DEBUG "Whether to print debug information" ON)
+set(BUILD_VERSION "reference" CACHE STRING "Defines function implementation version")
+set_property(CACHE BUILD_VERSION PROPERTY STRINGS reference cpuserial cpuparallel cuda1 cuda2)
 
 ###############################################################################
 # Project global options
@@ -82,6 +85,7 @@ add_library(common OBJECT
 	src/core.cpp
 	src/debug.cpp
 	src/filter.cpp
+	src/filter_impl_${BUILD_VERSION}.cpp
 	src/hist.cpp
 	src/median.cpp
 	src/processor.cpp
@@ -94,6 +98,13 @@ target_link_libraries(common
 	PUBLIC
 		${OpenCV_LIBRARIES}
 )
+
+###############################################################################
+# Compile definitions
+###############################################################################
+if(BUILD_DEBUG)
+    target_compile_definitions(common PUBLIC DEBUG)
+endif()
 
 ###############################################################################
 # Main executable
