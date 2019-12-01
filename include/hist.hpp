@@ -11,5 +11,12 @@
 
 #include "image.hpp"
 
-void equalize_hist_8(const Image& src, Image& dst);
+/**
+ * @brief Performs histogram equalization of source image
+ * @details
+ *
+ * @param src source image
+ * @param dst destination image
+ */
+void equalize_hist_8(const GrayImageU8& src, GrayImageU8& dst);
 
