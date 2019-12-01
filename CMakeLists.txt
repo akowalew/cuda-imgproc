@@ -22,7 +22,7 @@ option(BUILD_CONAN "Whether to use Conan package manager or not" OFF)
 option(BUILD_EXTERN "Whether to build extern libs or not" ON)
 
 set(BUILD_VERSION "reference" CACHE STRING "Defines function implementation version")
-set_property(CACHE BUILD_VERSION PROPERTY STRINGS reference cpuserial cpuparallel cuda1 cuda2)
+set_property(CACHE BUILD_VERSION PROPERTY STRINGS reference cpuserial cpuparallel cuda)
 
 ###############################################################################
 # Project global options
@@ -146,11 +146,6 @@ if(GNU)
             # Enable all GCC warnings
             -Wall -Wextra -pedantic
     )
-endif()
-
-if(BUILD_VERSION==cpuparallel)
-    find_package(OpenMP REQUIRED)
-    target_link_libraries(common PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
 ###############################################################################
