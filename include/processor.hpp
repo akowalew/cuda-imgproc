@@ -11,4 +11,16 @@
 
 #include "image.hpp"
 
+/**
+ * @brief Executes processing pipeline on given image
+ * @details Processing algorithm consists of five steps:
+ * 1) Splitting BGR image into B, G and R components
+ * 2) Applying median filter on each component separately
+ * 3) Applying Gaussian blur on each component separately
+ * 4) Equalizing histograms of each component separately
+ * 5) Merging B, G and R components into final image
+ *
+ * @param image image to be processed
+ * @return image after processing
+ */
 Image process_image(Image image);

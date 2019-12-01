@@ -11,4 +11,11 @@
 
 #include "image.hpp"
 
+/**
+ * @brief Writes image to the file
+ * @details
+ *
+ * @param path path of output file
+ * @param image image to be written
+ */
 void write_image(const char* path, Image image);
