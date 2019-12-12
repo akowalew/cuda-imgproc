@@ -23,6 +23,9 @@ void equalize_hist_8(const GrayImageU8& src, GrayImageU8& dst)
 	constexpr auto MaxValue = (int)std::numeric_limits<unsigned char>::max();
 	constexpr auto HistogramSize = (MaxValue + 1);
 
+
+
+
 	// We need helper variable in order to count values
 	// Initialize it with zeros
 	std::array<int, HistogramSize> histogram = {0};
@@ -59,8 +62,9 @@ void equalize_hist_8(const GrayImageU8& src, GrayImageU8& dst)
 	// The last element should be equal to total number of elements
 	assert(*std::prev(cdf.end()) == elems);
 
-	// Find first, non-null cdf value - minimal one
-	const int cdf_min = [&cdf]() {
+	// Find first, non-null cdf value - minimal one	
+	
+	const int cdf_min = [&cdf, &HistogramSize]() {
 		int cdf_value = cdf[0];
 		for(auto i = 0; i < HistogramSize; ++i)
 		{
@@ -73,6 +77,11 @@ void equalize_hist_8(const GrayImageU8& src, GrayImageU8& dst)
 
 		return cdf_value;
 	}();
+	
+
+
+
+
 
 	// We need another array, also in size of histogram, but now
 	// for acting like LookUpTable

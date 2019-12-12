@@ -10,12 +10,9 @@
 #include "processor.hpp"
 
 #include <cassert>
-
-#include <experimental/array>
-
 #include <opencv2/highgui.hpp>
 
-#include "core.hpp"
+#include "kore.hpp"
 #include "debug.hpp"
 #include "filter.hpp"
 #include "median.hpp"
@@ -55,7 +52,7 @@ void merge_and_show(const char* name, const std::array<Image, 3>& src)
 
 Image process_image(Image image)
 {
-	show_image("Original", image);
+	//show_image("Original", image);
 
 	// Allocate memory for each component
 	auto components = std::array<Image, 3>{{
@@ -82,6 +79,12 @@ Image process_image(Image image)
 	// Split BGR image into separate components
 	split_888(image, components);
 	merge_and_show("Splitted", components);
+	
+	
+
+	break_pixels(250, r, g, b);
+	merge_and_show("Broken", components);
+
 
 	// // Perform median filtering on each component
 	const auto median_kernel_size = 5;
@@ -89,7 +92,7 @@ Image process_image(Image image)
 	median2d_8(g, g_tmp, median_kernel_size);
 	median2d_8(r, r_tmp, median_kernel_size);
 	merge_and_show("Median", components_tmp);
-
+	/*
 	// // Perform mean-blurr filtering on each component
 	filter2d_8(b_tmp, b, kernel);
 	filter2d_8(g_tmp, g, kernel);
@@ -101,10 +104,12 @@ Image process_image(Image image)
 	equalize_hist_8(g, g_tmp);
 	equalize_hist_8(r, r_tmp);
 	merge_and_show("Histogram", components_tmp);
+	
+
 
 	// // Merge components again into BGR image
 	merge_888(components_tmp, image);
 	show_image("Result", image);
-
+	*/
 	return image;
 }

@@ -43,6 +43,9 @@ endif()
 # External packages
 ###############################################################################
 
+#Wymagane na windowsie.
+set(OpenCV_DIR ../opencv/build )
+
 find_package(OpenCV REQUIRED
     COMPONENTS
     	opencv_core

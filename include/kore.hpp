@@ -30,3 +30,12 @@ void split_888(const Image& src, std::array<Image, 3>& dst);
  * @param dst destination image, 3-component
  */
 void merge_888(const std::array<Image, 3>& src, Image& dst);
+
+
+
+
+
+//Breaks some random pixels(into black pixels), to prove that median works.
+void break_pixels(int part_to_be_broken, cv::Mat& r, cv::Mat& g, cv::Mat& b);
+
+

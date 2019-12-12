@@ -7,11 +7,13 @@
 // Date: 29.11.2019 0:47 CEST
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "reader.hpp"
 
+#include <opencv2/core/core.hpp>
 #include <opencv2/highgui.hpp>
 
 #include <cassert>
+#include "reader.hpp"
+
 
 Image read_image(const char* path)
 {

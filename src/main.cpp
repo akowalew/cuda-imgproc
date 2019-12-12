@@ -9,10 +9,16 @@
 
 #include <cstdio>
 
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui.hpp>
+
+
 #include "debug.hpp"
 #include "processor.hpp"
 #include "reader.hpp"
 #include "writer.hpp"
+
+
 
 /**
  * @brief Main program routine
@@ -25,17 +31,76 @@
  *
  * @return status code
  */
+
+
+enum {
+	console,
+	compile
+} usage_type;
+
+
 int main(int argc, char** argv)
 {
-    if(argc < 3)
-    {
-        printf("Usage: ./process-image <input_path> <output_path>\n");
-        return 1;
-    }
+	//choose one
+	//usage_type = console;
+	usage_type = compile;
 
-    const auto input_path = argv[1];
-    const auto output_path = argv[2];
 
+
+	const char *input_path, *output_path;
+	
+	
+	
+	if (usage_type == console) {
+		if (argc < 3)
+		{
+			printf("Usage: ./process-image <input_path> <output_path>\n");
+			return -1;
+		}
+
+		input_path = argv[1];
+		output_path = argv[2];
+	}
+
+	else if (usage_type == compile) {
+		
+		//input_path = "C:/Users/lab/Desktop/RIM/Projekt/sample.jpg";
+		//input_path = "C:\\Users\\lab\\Desktop\\RIM\\Projekt\\sample.jpg";
+		
+		input_path = "sample.jpg";
+		
+		output_path = "C:\\Users\\lab\\Desktop\\RIM\\Projekt\\out.jpg";
+	}
+
+	else {
+		printf("choose usage type");
+		return -1;
+	}
+	 
+
+
+	/*
+	cv::String in1("sample.jpg");
+
+	cv::String in2("C:/Users/lab/Desktop/RIM/Projekt/sample.jpg");
+
+	cv::String in3("C:\\Users\\lab\\Desktop\\RIM\\Projekt\\sample.jpg");
+	auto in = in3;
+
+	printf("\n%s\n", in.c_str());
+	cv::Mat image = cv::imread(in, cv::IMREAD_COLOR);
+	
+	
+	
+	printf("%d", image.size());
+	
+	*/
+	
+	
+	
+	
+	
+	
     try
     {
         const auto src_image = read_image(input_path);
@@ -50,4 +115,6 @@ int main(int argc, char** argv)
     {
         printf("Error: %s\n", ex.what());
     }
-}
+
+
+	}
