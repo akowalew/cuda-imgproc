@@ -11,8 +11,8 @@
 
 #include "median.hpp"
 
-//! Performs benchmarking of equalize_median_8 function
-static void equalize_median_8(benchmark::State& state, int width, int height, int ksize)
+//! Performs benchmarking of median_8 function
+static void median_8(benchmark::State& state, int width, int height, int ksize)
 {
     // Create source and destination image
     auto src = Image(width, height, CV_8UC1);
@@ -25,5 +25,5 @@ static void equalize_median_8(benchmark::State& state, int width, int height, in
     }
 }
 
-BENCHMARK_CAPTURE(equalize_median_8, 640x480x9, 640, 480, 9)
+BENCHMARK_CAPTURE(median_8, 640x480x9, 640, 480, 9)
     ->UseRealTime();
