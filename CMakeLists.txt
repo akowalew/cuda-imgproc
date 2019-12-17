@@ -8,7 +8,7 @@
 ###############################################################################
 
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
-project(cuda-imgproc VERSION 0.1.0 LANGUAGES CXX #[[CUDA]])
+project(cuda-imgproc VERSION 0.1.0 LANGUAGES CXX)
 
 ###############################################################################
 # Global options
@@ -16,6 +16,10 @@ project(cuda-imgproc VERSION 0.1.0 LANGUAGES CXX #[[CUDA]])
 
 option(BUILD_TESTING "Whether to build tests or not" ON)
 option(BUILD_DEBUG "Whether to print debug information" ON)
+option(BUILD_BENCHMARKING "Whether to build benchmarks or not" ON)
+option(BUILD_CUDA "Whether to build CUDA-related code" ON)
+option(BUILD_CONAN "Whether to use Conan package manager or not" OFF)
+
 set(BUILD_VERSION "reference" CACHE STRING "Defines function implementation version")
 set_property(CACHE BUILD_VERSION PROPERTY STRINGS reference cpuserial cpuparallel cuda1 cuda2)
 
@@ -23,8 +27,18 @@ set_property(CACHE BUILD_VERSION PROPERTY STRINGS reference cpuserial cpuparalle
 # Project global options
 ###############################################################################
 
+if(BUILD_CUDA)
+    # If needed, enable CUDA language compilers
+    enable_language(CUDA)
+endif()
+
 if(BUILD_TESTING)
+    # If unit-tests needed, enable CMake testing suite
 	enable_testing()
+endif()
+
+if(BUILD_DEBUG)
+    add_definitions(-DDEBUG)
 endif()
 
 ###############################################################################
@@ -32,10 +46,15 @@ endif()
 ###############################################################################
 
 # At the moment, Conan is useful only when building tests
-if(BUILD_TESTING)
+if(BUILD_CONAN)
     # Include output of conan installation
     find_file(CONANBUILDINFO_FILE conanbuildinfo.cmake HINTS ${CMAKE_BINARY_DIR})
     include(${CONANBUILDINFO_FILE})
+
+    # Perform basic Conan setup:
+    #  - read installed dependencies
+    #  - configure output directories (bin, lib)
+    #  - adjust compiler flags
     conan_basic_setup()
 endif()
 
@@ -43,6 +62,7 @@ endif()
 # External packages
 ###############################################################################
 
+# We need OpenCV solely for image reading-writing and image API
 find_package(OpenCV REQUIRED
     COMPONENTS
     	opencv_core
@@ -52,46 +72,41 @@ find_package(OpenCV REQUIRED
     	opencv_imgcodecs
 )
 
+if(BUILD_BENCHMARKING)
+    # We need this library only when benchmarking
+    find_package(benchmark REQUIRED)
+endif()
+
 if(BUILD_TESTING)
 	# We need this framework only when testing
 	find_package(doctest REQUIRED)
 endif()
 
-###############################################################################
-# Global options
-###############################################################################
-
-# Set global warning levels
-if(GNU)
-	add_compile_options(
-		-Wall -Wextra -pedantic
-	)
+if(BUILD_VERSION STREQUAL "cpuserial")
+    # We need OpenMP extensions when building for CPU
+    find_package(OpenMP)
 endif()
-
-# Set global include directory
-include_directories(include)
-
-# Require C++17 standard without platform extensions
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
 ###############################################################################
 # Common object files
 ###############################################################################
 
-# Define quasi-library contained only from object files
+# Define quasi-library contained only from compiled object files
 add_library(common OBJECT
 	src/core.cpp
 	src/debug.cpp
-	src/filter.cpp
-	src/filter_impl_${BUILD_VERSION}.cpp
+	src/filter_${BUILD_VERSION}.cpp
 	src/hist.cpp
 	src/median.cpp
 	src/processor.cpp
 	src/reader.cpp
 	src/writer.cpp
-  src/timer.cpp
+    src/timer.cpp
+)
+
+target_include_directories(common
+    PUBLIC
+        include
 )
 
 target_link_libraries(common
@@ -99,11 +114,24 @@ target_link_libraries(common
 		${OpenCV_LIBRARIES}
 )
 
-###############################################################################
-# Compile definitions
-###############################################################################
-if(BUILD_DEBUG)
-    target_compile_definitions(common PUBLIC DEBUG)
+if(OpenMP_CXX_FOUND)
+    # If OpenMP is needed, link against it
+    target_link_libraries(common PRIVATE OpenMP::OpenMP_CXX)
+endif()
+
+set_target_properties(common
+    PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON
+        CXX_EXTENSIONS OFF
+)
+
+if(GNU)
+    target_compile_options(common
+        PRIVATE
+            # Enable all GCC warnings
+            -Wall -Wextra -pedantic
+    )
 endif()
 
 ###############################################################################
@@ -118,6 +146,44 @@ target_link_libraries(process-image
 	PRIVATE
 		common
 )
+
+if(GNU)
+    target_compile_options(process-image
+        PRIVATE
+            # Enable all GCC warnings
+            -Wall -Wextra -pedantic
+    )
+endif()
+
+###############################################################################
+# Benchmarks
+###############################################################################
+
+if(BUILD_BENCHMARKING)
+    add_executable(process-image-bench
+        bench/bench_main.cpp
+        bench/filter_bench.cpp
+        bench/hist_bench.cpp
+        bench/median_bench.cpp
+    )
+
+    target_link_libraries(process-image-bench
+        PRIVATE
+            common
+
+            ${benchmark_LIBRARIES}
+            benchmark
+            pthread
+    )
+
+    if(GNU)
+        target_compile_options(process-image-bench
+            PRIVATE
+                # Enable all GCC warnings
+                -Wall -Wextra -pedantic
+        )
+    endif()
+endif()
 
 ###############################################################################
 # Unit tests
@@ -134,4 +200,12 @@ if(BUILD_TESTING)
 
             doctest::doctest
     )
+
+    if(GNU)
+        target_compile_options(process-image-test
+            PRIVATE
+                # Enable all GCC warnings
+                -Wall -Wextra -pedantic
+        )
+    endif()
 endif()
