@@ -9,7 +9,17 @@
 
 #pragma once
 
+#include <array>
+#include <limits>
+
 #include "image.hpp"
+
+template<typename T>
+using Histogram = std::array<int, (int)std::numeric_limits<T>::max() + 1>;
+
+using HistogramU8 = Histogram<unsigned char>;
+
+void calculate_hist_8(const GrayImageU8& src, HistogramU8& histogram);
 
 /**
  * @brief Performs histogram equalization of source image
