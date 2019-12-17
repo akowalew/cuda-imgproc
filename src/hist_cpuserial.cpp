@@ -15,8 +15,6 @@
 #include <array>
 #include <limits>
 
-#include <omp.h>
-
 template<typename T>
 using CDF = Histogram<T>;
 
@@ -26,7 +24,6 @@ void calculate_hist_8(const GrayImageU8& src, HistogramU8& histogram)
 {
 	// Calculate histogram
 	const auto elems = (src.rows * src.cols);
-	#pragma omp simd
 	for(auto i = 0; i < elems; ++i)
 	{
 		// Get value (brightness) of current pixel
@@ -54,7 +51,6 @@ void equalize_hist_8(const GrayImageU8& src, GrayImageU8& dst)
 	CDFU8 cdf;
 	int accumulator = 0;
 
-	#pragma omp simd
 	for(auto i = 0; i < histogram.size(); ++i)
 	{
 		// Get i-th value counter
@@ -90,7 +86,6 @@ void equalize_hist_8(const GrayImageU8& src, GrayImageU8& dst)
 	std::array<unsigned char, histogram.size()> lut;
 
 	// Generate lookup table
-	// #pragma omp parallel for simd schedule(dynamic, 32)
 	for(auto i = 0; i < histogram.size(); ++i)
 	{
 		const int cdf_value = cdf[i];
@@ -101,7 +96,6 @@ void equalize_hist_8(const GrayImageU8& src, GrayImageU8& dst)
 	}
 
 	// Apply LUT on the source image
-	#pragma omp parallel for
 	for(auto i = 0; i < rows; ++i)
 	{
 		for(auto j = 0; j < cols; ++j)

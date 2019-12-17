@@ -82,7 +82,7 @@ if(BUILD_TESTING)
 	find_package(doctest REQUIRED)
 endif()
 
-if(BUILD_VERSION STREQUAL "cpuserial")
+if(BUILD_VERSION STREQUAL "cpuparallel")
     # We need OpenMP extensions when building for CPU
     find_package(OpenMP)
 endif()
@@ -91,12 +91,12 @@ endif()
 # Common object files
 ###############################################################################
 
-# Define quasi-library contained only from compiled object files
+# Define library contained only from compiled object files
 add_library(common OBJECT
 	src/core.cpp
 	src/debug.cpp
 	src/filter_${BUILD_VERSION}.cpp
-	src/hist.cpp
+	src/hist_${BUILD_VERSION}.cpp
 	src/median.cpp
 	src/processor.cpp
 	src/reader.cpp
