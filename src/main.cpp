@@ -64,12 +64,8 @@ int main(int argc, char** argv)
 
 	else if (usage_type == compile) {
 		
-		//input_path = "C:/Users/lab/Desktop/RIM/Projekt/sample.jpg";
-		//input_path = "C:\\Users\\lab\\Desktop\\RIM\\Projekt\\sample.jpg";
-		
-		input_path = "sample.jpg";
-		
-		output_path = "C:\\Users\\lab\\Desktop\\RIM\\Projekt\\out.jpg";
+		input_path = "C:/Users/lab/Desktop/RIM/Projekt/sample.jpg";
+		output_path = "C:/Users/lab/Desktop/RIM/Projekt/out.jpg";
 	}
 
 	else {

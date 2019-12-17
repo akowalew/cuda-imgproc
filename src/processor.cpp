@@ -82,7 +82,7 @@ Image process_image(Image image)
 	
 	
 
-	break_pixels(250, r, g, b);
+	break_pixels(10, r, g, b);
 	merge_and_show("Broken", components);
 
 
