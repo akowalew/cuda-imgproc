@@ -91,17 +91,21 @@ endif()
 # Common object files
 ###############################################################################
 
+file(GLOB hist_SOURCES src/hist_${BUILD_VERSION}.c*)
+file(GLOB filter_SOURCES src/filter_${BUILD_VERSION}.c*)
+
 # Define library contained only from compiled object files
 add_library(common OBJECT
 	src/core.cpp
 	src/debug.cpp
-	src/filter_${BUILD_VERSION}.cpp
-	src/hist_${BUILD_VERSION}.cpp
 	src/median.cpp
 	src/processor.cpp
 	src/reader.cpp
 	src/writer.cpp
     src/timer.cpp
+
+    ${hist_SOURCES}
+    ${filter_SOURCES}
 )
 
 target_include_directories(common
