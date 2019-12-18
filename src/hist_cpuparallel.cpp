@@ -2,10 +2,10 @@
 // hist.cpp
 //
 // Contains definitions of functions working on images histograms
-// CPU serial version
+// CPU parallel version - OpenMP extensions
 //
 // Author: akowalew (ram.techen@gmail.com)
-// Date: 17.11.2019 20:28 CEST
+// Date: 18.11.2019 02:03 CEST
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "hist.hpp"
@@ -15,6 +15,8 @@
 
 #include <array>
 #include <limits>
+
+#include <omp.h>
 
 //! Helper typedef - cumulative distribution function of image with given type
 template<typename T>
@@ -175,18 +177,25 @@ void apply_lut(const GrayImageU8& src, GrayImageU8& dst, const LUTU8& lut)
 	// Store local copy of image size
 	const auto rows = src.rows;
 	const auto cols = src.cols;
+	const auto elems = (rows * cols);
 
-	const auto src_end = src.dataend;
+	const auto src_data = src.data;
+	const auto dst_data = dst.data;
 
 	// Apply LUT on the source image
-	auto src_it = src.data;
-	auto dst_it = dst.data;
-	for(; src_it != src_end; ++src_it, ++dst_it)
+	#pragma omp parallel for
+	for(auto i = 0; i < rows; ++i)
 	{
-		const auto src_value = *src_it;
-		const auto dst_value = lut[src_value];
+		auto src_it_i = (src_data + i * cols);
+		auto dst_it_i = (dst_data + i * cols);
 
-		*dst_it = dst_value;
+		for(auto j = 0; j < cols; ++j)
+		{
+			const auto src_value = src_it_i[j];
+			const auto dst_value = lut[src_value];
+
+			dst_it_i[j] = dst_value;
+		}
 	}
 }
 

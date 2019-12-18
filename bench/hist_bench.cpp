@@ -31,5 +31,5 @@ static void equalize_hist_8(benchmark::State& state, int width, int height)
     }
 }
 
-BENCHMARK_CAPTURE(equalize_hist_8, 640x480, 640, 480)
+BENCHMARK_CAPTURE(equalize_hist_8, 3840x2160, 3840, 2160)
     ->UseRealTime();
