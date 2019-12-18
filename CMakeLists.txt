@@ -19,6 +19,7 @@ option(BUILD_DEBUG "Whether to print debug information" ON)
 option(BUILD_BENCHMARKING "Whether to build benchmarks or not" ON)
 option(BUILD_CUDA "Whether to build CUDA-related code" ON)
 option(BUILD_CONAN "Whether to use Conan package manager or not" OFF)
+option(BUILD_EXTERN "Whether to build extern libs or not" ON)
 
 set(BUILD_VERSION "reference" CACHE STRING "Defines function implementation version")
 set_property(CACHE BUILD_VERSION PROPERTY STRINGS reference cpuserial cpuparallel cuda1 cuda2)
@@ -39,6 +40,14 @@ endif()
 
 if(BUILD_DEBUG)
     add_definitions(-DDEBUG)
+endif()
+
+###############################################################################
+# Extern libraries
+###############################################################################
+
+if(BUILD_EXTERN)
+    add_subdirectory(extern)
 endif()
 
 ###############################################################################
@@ -116,6 +125,7 @@ target_include_directories(common
 target_link_libraries(common
 	PUBLIC
 		${OpenCV_LIBRARIES}
+        cuda-samples
 )
 
 if(OpenMP_CXX_FOUND)
