@@ -22,12 +22,21 @@ In order to build project, you will need following stuff:
  - `Conan`, at least 1.10.1
  - `OpenCV` - for reading/writing images and for reference implementation of the algorithms. Must be installed globally in the system
  - `Google Benchmark` - microbenchmarking library - to be installed via Conan or globally in the system
+ - `cuda-samples` - handy utilities needed when developing for CUDA. Available via Git submodule
 
 OpenCV and CUDA runtime is desired to be installed on host system. Other libraries may be managed using Conan package manager. 
 
 ## Compilation
 
-In order to compile the project, create out-of-source build directory:
+First, you have to download Git submodules:
+
+```sh
+# Download git submodules
+git submodule init
+git submodule update
+```
+
+Then, in order to compile the project, create out-of-source build directory:
 
 ```sh
 # Create out-of-source build directory
