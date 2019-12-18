@@ -19,6 +19,7 @@ option(BUILD_DEBUG "Whether to print debug information" ON)
 option(BUILD_BENCHMARKING "Whether to build benchmarks or not" ON)
 option(BUILD_CUDA "Whether to build CUDA-related code" ON)
 option(BUILD_CONAN "Whether to use Conan package manager or not" OFF)
+option(BUILD_EXTERN "Whether to build extern libs or not" ON)
 
 set(BUILD_VERSION "reference" CACHE STRING "Defines function implementation version")
 set_property(CACHE BUILD_VERSION PROPERTY STRINGS reference cpuserial cpuparallel cuda1 cuda2)
@@ -39,6 +40,14 @@ endif()
 
 if(BUILD_DEBUG)
     add_definitions(-DDEBUG)
+endif()
+
+###############################################################################
+# Extern libraries
+###############################################################################
+
+if(BUILD_EXTERN)
+    add_subdirectory(extern)
 endif()
 
 ###############################################################################
@@ -82,7 +91,7 @@ if(BUILD_TESTING)
 	find_package(doctest REQUIRED)
 endif()
 
-if(BUILD_VERSION STREQUAL "cpuserial")
+if(BUILD_VERSION STREQUAL "cpuparallel")
     # We need OpenMP extensions when building for CPU
     find_package(OpenMP)
 endif()
@@ -91,17 +100,21 @@ endif()
 # Common object files
 ###############################################################################
 
-# Define quasi-library contained only from compiled object files
+file(GLOB hist_SOURCES src/hist_${BUILD_VERSION}.c*)
+file(GLOB filter_SOURCES src/filter_${BUILD_VERSION}.c*)
+
+# Define library contained only from compiled object files
 add_library(common OBJECT
 	src/core.cpp
 	src/debug.cpp
-	src/filter_${BUILD_VERSION}.cpp
-	src/hist.cpp
 	src/median.cpp
 	src/processor.cpp
 	src/reader.cpp
 	src/writer.cpp
     src/timer.cpp
+
+    ${hist_SOURCES}
+    ${filter_SOURCES}
 )
 
 target_include_directories(common
@@ -112,6 +125,7 @@ target_include_directories(common
 target_link_libraries(common
 	PUBLIC
 		${OpenCV_LIBRARIES}
+        cuda-samples
 )
 
 if(OpenMP_CXX_FOUND)
