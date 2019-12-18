@@ -2,6 +2,7 @@
 // hist.cpp
 //
 // Contains definitions of functions working on images histograms
+// CPU serial version
 //
 // Author: akowalew (ram.techen@gmail.com)
 // Date: 17.11.2019 20:28 CEST
@@ -15,12 +16,12 @@
 #include <array>
 #include <limits>
 
-//! Helper typedef - cumulative distribution function with specified size
-template<size_t Size>
-using CDF = std::array<int, Size>;
+//! Helper typedef - cumulative distribution function of image with given type
+template<typename T>
+using CDF = Histogram<T>;
 
-//! Helper typedef - cumulative distribution function with 256 values (suited for 8-bit histograms)
-using CDFU8 = CDF<256>;
+//! Helper typedef - cumulative distribution function of 8-bit image
+using CDFU8 = CDF<unsigned char>;
 
 //! Helper typedef - lookup table for given type and specified number of values
 template<typename T, size_t Size>
@@ -102,9 +103,8 @@ CDFU8 calculate_cdf(const HistogramU8& histogram)
 CDFU8::value_type find_cdf_min(const CDFU8& cdf)
 {
 	// Find first, non-null cdf value - minimal one
-	for(auto i = 0; i < cdf.size(); ++i)
+	for(const auto cdf_value : cdf)
 	{
-		const auto cdf_value = cdf[i];
 		if(cdf_value != 0)
 		{
 			return cdf_value;
@@ -138,14 +138,19 @@ LUTU8 generate_lut(const CDFU8& cdf, CDFU8::value_type cdf_min)
 	// Maximum value of an 8-bit number
 	constexpr int MaxValue = 255;
 
+	// Store copy of CDF data end pointer
+	const auto cdf_end = cdf.end();
+
 	// Generate lookup table
-	for(auto i = 0; i < cdf.size(); ++i)
+	auto cdf_it = cdf.begin();
+	auto lut_it = lut.begin();
+	for(; cdf_it != cdf_end; ++cdf_it, ++lut_it)
 	{
-		const auto cdf_value = cdf[i];
+		const auto cdf_value = *cdf_it;
 		const auto cdf_diff = (cdf_value - cdf_min);
 		const auto lut_value = ((cdf_diff * MaxValue) / (elems - cdf_min));
 
-		lut[i] = lut_value;
+		*lut_it = lut_value;
 	}
 
 	return lut;
@@ -170,18 +175,19 @@ void apply_lut(const GrayImageU8& src, GrayImageU8& dst, const LUTU8& lut)
 	// Store local copy of image size
 	const auto rows = src.rows;
 	const auto cols = src.cols;
+	const auto elems = (rows * cols);
+
+	const auto src_end = src.dataend;
 
 	// Apply LUT on the source image
-	for(auto i = 0; i < rows; ++i)
+	auto src_it = src.data;
+	auto dst_it = dst.data;
+	for(; src_it != src_end; ++src_it, ++dst_it)
 	{
-		for(auto j = 0; j < cols; ++j)
-		{
-			const auto idx = ((i * cols) + j);
-			const auto src_value = src.data[idx];
-			const auto dst_value = lut[src_value];
+		const auto src_value = *src_it;
+		const auto dst_value = lut[src_value];
 
-			dst.data[idx] = dst_value;
-		}
+		*dst_it = dst_value;
 	}
 }
 
