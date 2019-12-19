@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// hist_bench.cpp
+// hist_cuda1_bench.cpp
 //
-// Contains definitions of benchmarks for hist module
+// Contains definitions of benchmarks for hist_cuda1 module
 //
 // Author: akowalew (ram.techen@gmail.com)
-// Date: 17.12.2019 19:46 CEST
+// Date: 19.12.2019 13:59 CEST
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <benchmark/benchmark.h>

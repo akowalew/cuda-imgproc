@@ -22,7 +22,7 @@ option(BUILD_CONAN "Whether to use Conan package manager or not" OFF)
 option(BUILD_EXTERN "Whether to build extern libs or not" ON)
 
 set(BUILD_VERSION "reference" CACHE STRING "Defines function implementation version")
-set_property(CACHE BUILD_VERSION PROPERTY STRINGS reference cpuserial cpuparallel cuda1 cuda2)
+set_property(CACHE BUILD_VERSION PROPERTY STRINGS reference cpuserial cpuparallel cuda)
 
 ###############################################################################
 # Project global options
@@ -176,9 +176,7 @@ endif()
 if(BUILD_BENCHMARKING)
     add_executable(process-image-bench
         bench/bench_main.cpp
-        bench/filter_bench.cpp
-        bench/hist_bench.cpp
-        bench/median_bench.cpp
+        bench/hist_${BUILD_VERSION}_bench.cpp
     )
 
     target_link_libraries(process-image-bench
