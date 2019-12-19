@@ -1,0 +1,17 @@
+///////////////////////////////////////////////////////////////////////////////
+// cuda_image.hpp
+//
+// Contains declarations of image types classes for CUDA
+//
+// Author: akowalew (ram.techen@gmail.com)
+// Date: 19.12.2019 16:51 CEST
+///////////////////////////////////////////////////////////////////////////////
+
+#pragma once
+
+struct CudaImage
+{
+    void* data;
+    int width;
+    int height;
+};
