@@ -19,4 +19,4 @@
  * @param dst destination image
  * @param kernel kernel of the filter (squared)
  */
-void filter2d_8(const Image& src, Image& dst, const Image& kernel);
+void filter2d_8(const Image& src, Image& dst, const Image& kernel, int offset=-1);
