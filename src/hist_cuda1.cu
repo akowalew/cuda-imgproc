@@ -1,209 +1,106 @@
 ///////////////////////////////////////////////////////////////////////////////
-// hist.cpp
+// hist_cuda1.cu
 //
 // Contains definitions of functions working on images histograms
-// CPU serial version
+// CUDA1 version
 //
 // Author: akowalew (ram.techen@gmail.com)
-// Date: 17.11.2019 20:28 CEST
+// Date: 19.12.2019 20:33 CEST
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "hist.hpp"
+#include "hist_cuda1.hpp"
+
+#include <stdio.h>
 
 #include <cassert>
-#include <cstdio>
 
-#include <array>
-#include <limits>
+#include <helper_cuda.h>
 
-//! Helper typedef - cumulative distribution function of image with given type
-template<typename T>
-using CDF = Histogram<T>;
-
-//! Helper typedef - cumulative distribution function of 8-bit image
-using CDFU8 = CDF<unsigned char>;
-
-//! Helper typedef - lookup table for given type and specified number of values
-template<typename T, size_t Size>
-using LUT = std::array<T, Size>;
-
-//! Helper typedef - lookup table with 8-bit 256 values
-using LUTU8 = LUT<unsigned char, 256>;
-
-/**
- * @brief Calculates histogram of given image
- * @details
- *
- * @param src source image
- * @return calculated histogram
- */
-HistogramU8 calculate_hist_8(const GrayImageU8& src)
+CudaHistogramI8 create_cuda_histogram()
 {
-	// Initialize histogram with zeros (!)
-	HistogramU8 histogram = {0};
+	int* d_data;
+	checkCudaErrors(cudaMalloc(&d_data, CudaHistogramI8::size()));
 
-	// Calculate histogram
-	const auto elems = (src.rows * src.cols);
-	for(auto i = 0; i < elems; ++i)
-	{
-		// Get value (brightness) of current pixel
-		const unsigned char value = src.data[i];
-
-		// Increase this value's counter
-		++histogram[value];
-	}
-
-	return histogram;
+	return CudaHistogramI8{d_data};
 }
 
-/**
- * @brief Calculates cumulative distribution function based on image histogram
- * @details
- *
- * @param histogram image histogram
- * @return cumulative distribution function
- */
-CDFU8 calculate_cdf(const HistogramU8& histogram)
+CudaHistogramI8 create_host_histogram()
 {
-	CDFU8 cdf;
+	int* h_data = (int*) malloc(CudaHistogramI8::size());
+	assert(h_data != nullptr);
 
-	//static_assert(cdf.size() == histogram.size(),
-	//	"Size of the histogram and the CDF should be equal");
-
-	// We are going to accumulate histogram values in next iterations
-	CDFU8::value_type accumulator = 0;
-
-	// Calculate cumulative distribution function
-	for(auto i = 0; i < histogram.size(); ++i)
-	{
-		// Get i-th value counter
-		const int hist_value = histogram[i];
-
-		// Increase cumulative counter
-		accumulator += hist_value;
-
-		// Store current value of the accumulator
-		cdf[i] = accumulator;
-	}
-
-	// At the end, from well defined histogram, accumulator should be non-zero
-	// Because histogram must be non-zeroed
-	assert(accumulator > 0);
-
-	return cdf;
+	return CudaHistogramI8{h_data};
 }
 
-/**
- * @brief Finds first non-zero minima of the CDF
- * @details
- *
- * @param cdf cumulative distribution function
- * @return
- */
-CDFU8::value_type find_cdf_min(const CDFU8& cdf)
+void free_cuda_histogram(const CudaHistogramI8& histogram)
 {
-	// Find first, non-null cdf value - minimal one
-	for(const auto cdf_value : cdf)
+	checkCudaErrors(cudaFree(histogram.data));
+}
+
+void free_host_histogram(const CudaHistogramI8& histogram)
+{
+	free(histogram.data);
+}
+
+void copy_cuda_histogram_to_host(const CudaHistogramI8& d_histogram, 
+	const CudaHistogramI8& h_histogram)
+{
+	checkCudaErrors(cudaMemcpy(h_histogram.data, d_histogram.data, 
+		CudaHistogramI8::size(), cudaMemcpyDeviceToHost));
+}
+
+__global__ 
+void kernel_calculate_hist_8(CudaImage src, CudaHistogramI8 histogram)
+{
+	// Underlying data type of each pixel
+	using DataType = unsigned char;
+
+	// What value we will be looking for
+	const auto target_value = static_cast<DataType>(threadIdx.x);
+
+	// Initialize counter to count matches to target value
+	auto counter = CudaHistogramI8::Counter{0};
+
+	// Iterate over whole image and count pixels equal to target value
+	for(size_t y = 0; y < src.height; ++y)
 	{
-		if(cdf_value != 0)
+		for(size_t x = 0; x < src.width; ++x)
 		{
-			return cdf_value;
+			// Calculate offset in source buffer for that pixel
+			const auto src_offset = (y*src.pitch + x*sizeof(DataType));
+
+			// Obtain pointer to pixel's value 
+			const auto value_ptr = static_cast<DataType*>(static_cast<unsigned char*>(src.data) + src_offset);
+
+			// Retrieve value of that pixel
+			const auto value = *value_ptr;
+
+			printf("%d ",  value);
+
+			// Check, if retrieved value is equal to needed one
+			if(value == target_value)
+			{
+				// We've got next value 
+				++counter;
+			}
 		}
 	}
 
-	// If we are here, cdf is zeroed, what means that histogram is zeroed
-	// Which means basically an ERROR!
-	assert("This should not happen");
+	// Store value of target value counter
+	histogram.data[threadIdx.x] = counter;
 }
 
-/**
- * @brief Generates lookup table based on cumulative distribution function (CDF)
- * @details
- *
- * @param cdf cumulative distribution function
- * @param cdf_min non-zero minima of the CDF
- *
- * @return generated lookup table
- */
-LUTU8 generate_lut(const CDFU8& cdf, CDFU8::value_type cdf_min)
+void calculate_hist_8_cuda1(const CudaImage& image, CudaHistogramI8& histogram)
 {
-	LUTU8 lut;
+	// We will use one CUDA grid with L threads (L is length of histogram)
+	const auto dim_grid = 1;
+	const auto dim_block = histogram.length();
+	kernel_calculate_hist_8<<<dim_grid, dim_block>>>(image, histogram);
 
-//	static_assert(cdf.size() == lut.size(),
-//		"Size of CDF and size of LUT must be equal");
-
-	// Number of elements is equal to the last element of the CDF
-	const auto elems = cdf.back();
-
-	// Maximum value of an 8-bit number
-	constexpr int MaxValue = 255;
-
-	// Store copy of CDF data end pointer
-	const auto cdf_end = cdf.end();
-
-	// Generate lookup table
-	auto cdf_it = cdf.begin();
-	auto lut_it = lut.begin();
-	for(; cdf_it != cdf_end; ++cdf_it, ++lut_it)
-	{
-		const auto cdf_value = *cdf_it;
-		const auto cdf_diff = (cdf_value - cdf_min);
-		const auto lut_value = ((cdf_diff * MaxValue) / (elems - cdf_min));
-
-		*lut_it = lut_value;
-	}
-
-	return lut;
+	checkCudaErrors(cudaGetLastError());
 }
 
-/**
- * @brief Applies LookUpTable into the source image and stores result
- * @details For each pixel in the source image it performs following operation:
- *  value = lut[src[i]]
- *  dst[i] = value
- *
- * @param src source image
- * @param dst destination image
- * @param lut LookUpTable
- */
-void apply_lut(const GrayImageU8& src, GrayImageU8& dst, const LUTU8& lut)
+void equalize_hist_8_cuda1(const CudaImage& src, CudaImage& dst)
 {
-	// Source and destination images must have same size and types
-	assert(src.rows == dst.rows);
-	assert(src.cols == dst.cols);
 
-	// Store local copy of image size
-	const auto rows = src.rows;
-	const auto cols = src.cols;
-
-	const auto src_end = src.dataend;
-
-	// Apply LUT on the source image
-	auto src_it = src.data;
-	auto dst_it = dst.data;
-	for(; src_it != src_end; ++src_it, ++dst_it)
-	{
-		const auto src_value = *src_it;
-		const auto dst_value = lut[src_value];
-
-		*dst_it = dst_value;
-	}
-}
-
-void equalize_hist_8(const GrayImageU8& src, GrayImageU8& dst)
-{
-	// Source and destination images must have same size and types
-	assert(src.rows == dst.rows);
-	assert(src.cols == dst.cols);
-	assert(src.type() == dst.type());
-
-	const auto histogram = calculate_hist_8(src);
-	const auto cdf = calculate_cdf(histogram);
-
-	// The last element od CDF should be equal to total number of elements
-	assert(cdf.back() == (src.rows * src.cols));
-
-	const auto cdf_min = find_cdf_min(cdf);
-	const auto lut = generate_lut(cdf, cdf_min);
-	apply_lut(src, dst, lut);
-}
+}	

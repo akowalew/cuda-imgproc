@@ -97,10 +97,10 @@ Image process_image(Image image)
 	merge_and_show("Gaussian", components);
 
 	// // Perform histogram equalization on each component
-	equalize_hist_8(b, b_tmp);
-	equalize_hist_8(g, g_tmp);
-	equalize_hist_8(r, r_tmp);
-	merge_and_show("Histogram", components_tmp);
+	// equalize_hist_8(b, b_tmp);
+	// equalize_hist_8(g, g_tmp);
+	// equalize_hist_8(r, r_tmp);
+	// merge_and_show("Histogram", components_tmp);
 
 	// // Merge components again into BGR image
 	merge_888(components_tmp, image);

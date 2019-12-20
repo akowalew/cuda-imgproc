@@ -18,7 +18,7 @@ option(BUILD_TESTING "Whether to build tests or not" ON)
 option(BUILD_DEBUG "Whether to print debug information" ON)
 option(BUILD_BENCHMARKING "Whether to build benchmarks or not" ON)
 option(BUILD_CUDA "Whether to build CUDA-related code" ON)
-option(BUILD_CONAN "Whether to use Conan package manager or not" OFF)
+option(BUILD_CONAN "Whether to use Conan package manager or not" ON)
 option(BUILD_EXTERN "Whether to build extern libs or not" ON)
 
 set(BUILD_VERSION "reference" CACHE STRING "Defines function implementation version")
@@ -115,6 +115,8 @@ add_library(common OBJECT
 
     ${hist_SOURCES}
     ${filter_SOURCES}
+
+    src/cuda_image.cpp
 )
 
 target_include_directories(common
@@ -127,6 +129,7 @@ target_link_libraries(common
 		${OpenCV_LIBRARIES}
         cuda-samples
 )
+
 
 if(OpenMP_CXX_FOUND)
     # If OpenMP is needed, link against it
@@ -204,6 +207,7 @@ endif()
 if(BUILD_TESTING)
     add_executable(process-image-test
 	    test/test_main.cpp
+        test/hist_cuda1_test.cpp
     )
 
     target_link_libraries(process-image-test
