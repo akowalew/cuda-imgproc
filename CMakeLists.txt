@@ -147,7 +147,15 @@ if(GNU)
     target_compile_options(common
         PRIVATE
             # Enable all GCC warnings
-            -Wall -Wextra -pedantic
+            $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -pedantic>
+    )
+endif()
+
+if(BUILD_VERSION STREQUAL "cuda1")
+    target_compile_options(common
+        PRIVATE
+            # Allow to use constexpr functions in CUDA kernels
+            $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>
     )
 endif()
 

@@ -114,7 +114,7 @@ CDFU8::value_type find_cdf_min(const CDFU8& cdf)
 	}
 
 	// If we are here, cdf is zeroed, what means that histogram is zeroed
-	// Which means basically an ERROR!
+	// Which means basically an ERROR, because histogram must be non-zero
 	assert("This should not happen");
 }
 
