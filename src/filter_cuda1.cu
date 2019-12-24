@@ -46,7 +46,7 @@ __host__ void filter2d_8(const Image& src, Image& dst, const Image& kernel, int 
 	checkCudaErrors(cudaSetDevice(0));
 	checkCudaErrors(cudaMalloc(&device_in, sizeof(uchar) * cols * rows));
 	checkCudaErrors(cudaMalloc(&device_out, sizeof(float) * cols * rows));
-	checkCudaErrors(cudaMalloc(&device_convol, sizeof(float)*(n + 1)));
+	//checkCudaErrors(cudaMalloc(&device_convol, sizeof(float)*K*K));
 // 	checkCudaErrors(cudaMemcpy(device_in, yin, dim_bytes, cudaMemcpyHostToDevice));
 // 	//checkCudaErrors(cudaMemcpy(device_out, yout, dim_bytes, cudaMemcpyHostToDevice));
 // 	checkCudaErrors(cudaMemcpy(device_coeff, coeff, sizeof(float)*(n + 1), cudaMemcpyHostToDevice));
