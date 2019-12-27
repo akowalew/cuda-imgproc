@@ -68,9 +68,17 @@ cmake ../ \
     -DBUILD_VERSION=<reference/cpuserial/cpuparallel/cuda1/cuda2> \
 ```
 
+<<<<<<< HEAD
 In order to build everything, just type:
 
 ```sh
+=======
+cmake ../ \
+    -DCMAKE_BUILD_TYPE=<Release/Debug> \
+    -DBUILD_TESTING=<ON/OFF> \
+    -DBUILD_VERSION=<reference/cpuserial/cpuparallel/cuda1/cuda2> 
+
+>>>>>>> origin/median
 # Compile everything
 make -j${nproc}
 ```
