@@ -21,9 +21,6 @@ option(BUILD_CUDA "Whether to build CUDA-related code" ON)
 option(BUILD_CONAN "Whether to use Conan package manager or not" ON)
 option(BUILD_EXTERN "Whether to build extern libs or not" ON)
 
-set(BUILD_VERSION "reference" CACHE STRING "Defines function implementation version")
-set_property(CACHE BUILD_VERSION PROPERTY STRINGS reference cpuserial cpuparallel cuda)
-
 ###############################################################################
 # Project global options
 ###############################################################################
@@ -91,145 +88,14 @@ if(BUILD_TESTING)
 	find_package(doctest REQUIRED)
 endif()
 
-if(BUILD_VERSION STREQUAL "cpuparallel")
-    # We need OpenMP extensions when building for CPU
-    find_package(OpenMP)
+if(BUILD_VERSION STREQUAL "cpu_multi")
+    # We need OpenMP extensions when building for CPU with multicore configuration
+    find_package(OpenMP REQUIRED)
 endif()
 
 ###############################################################################
-# Common object files
+# Subprojects
 ###############################################################################
 
-file(GLOB hist_SOURCES src/hist_${BUILD_VERSION}.c*)
-file(GLOB filter_SOURCES src/filter_${BUILD_VERSION}.c*)
-
-# Define library contained only from compiled object files
-add_library(common OBJECT
-	src/core.cpp
-	src/debug.cpp
-	src/median.cpp
-	src/processor.cpp
-	src/reader.cpp
-	src/writer.cpp
-    src/timer.cpp
-
-    ${hist_SOURCES}
-    ${filter_SOURCES}
-
-    src/cuda_image.cpp
-)
-
-target_include_directories(common
-    PUBLIC
-        include
-)
-
-target_link_libraries(common
-	PUBLIC
-		${OpenCV_LIBRARIES}
-        cuda-samples
-)
-
-
-if(OpenMP_CXX_FOUND)
-    # If OpenMP is needed, link against it
-    target_link_libraries(common PRIVATE OpenMP::OpenMP_CXX)
-endif()
-
-set_target_properties(common
-    PROPERTIES
-        CXX_STANDARD 17
-        CXX_STANDARD_REQUIRED ON
-        CXX_EXTENSIONS OFF
-)
-
-if(GNU)
-    target_compile_options(common
-        PRIVATE
-            # Enable all GCC warnings
-            $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -pedantic>
-    )
-endif()
-
-if(BUILD_VERSION STREQUAL "cuda1")
-    target_compile_options(common
-        PRIVATE
-            # Allow to use constexpr functions in CUDA kernels
-            $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>
-    )
-endif()
-
-###############################################################################
-# Main executable
-###############################################################################
-
-add_executable(process-image
-	src/main.cpp
-)
-
-target_link_libraries(process-image
-	PRIVATE
-		common
-)
-
-if(GNU)
-    target_compile_options(process-image
-        PRIVATE
-            # Enable all GCC warnings
-            -Wall -Wextra -pedantic
-    )
-endif()
-
-###############################################################################
-# Benchmarks
-###############################################################################
-
-if(BUILD_BENCHMARKING)
-    add_executable(process-image-bench
-        bench/bench_main.cpp
-        bench/hist_${BUILD_VERSION}_bench.cpp
-    )
-
-    target_link_libraries(process-image-bench
-        PRIVATE
-            common
-
-            ${benchmark_LIBRARIES}
-            benchmark
-            pthread
-    )
-
-    if(GNU)
-        target_compile_options(process-image-bench
-            PRIVATE
-                # Enable all GCC warnings
-                -Wall -Wextra -pedantic
-        )
-    endif()
-endif()
-
-###############################################################################
-# Unit tests
-###############################################################################
-
-if(BUILD_TESTING)
-    add_executable(process-image-test
-	    test/test_main.cpp
-        test/hist_cuda1_test.cpp
-    )
-
-    target_link_libraries(process-image-test
-	    PRIVATE
-		    common
-
-            doctest::doctest
-    )
-
-    if(GNU)
-        target_compile_options(process-image-test
-            PRIVATE
-                # Enable all GCC warnings
-                -Wall -Wextra -pedantic
-        )
-    endif()
-endif()
+add_subdirectory(lib)
+add_subdirectory(app)
