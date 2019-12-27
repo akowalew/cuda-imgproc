@@ -11,20 +11,21 @@
 #include <string.h>
 
 #include <cuda.h>
-#include <cuda_runtime.h>
+#include "cuda_runtime.h"
+#include "cuda_runtime_API.h"
 
 #include "device_launch_parameters.h"
 //#include <stdio.h>
 #include "helper_cuda.h" 
 
-#include "median_cuda_v1.cuh"
+#include "median.hpp"
 
 //Kompletnie sie nie oplaca robic mniejszych.
 constexpr int K = 32;
 __global__ static void  median_kernel(unsigned char* src, unsigned char* dst, int kernel_size, int cols, int rows);
 
 //Mocno polegam na tym, ze jeden pixel(subpixel) to unsigned char.
-void median(const Image& src, Image& dst, int kernel_size) {
+void median2d_8(const Image& src, Image& dst, int kernel_size) {
 	//kernel_size max 7 - (7*2+1) = (14+1)^2
 	//7+32+7 = 32 + 14
 	int x_min = kernel_size;
