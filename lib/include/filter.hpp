@@ -19,4 +19,4 @@
  * @param dst destination image
  * @param kernel kernel of the filter (squared)
  */
-void filter(const Image& src, Image& dst, const Image& kernel);
+void filter(const Image& src, Image& dst, const Image& kernel, int offset=-1);
