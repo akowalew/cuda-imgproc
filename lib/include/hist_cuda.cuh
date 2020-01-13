@@ -153,62 +153,71 @@ void hist_init();
  */
 void hist_deinit();
 
+// __global__
+// void calculate_hist(
+// 	const void* image, size_t pitch, size_t width, size_t height,
+// 	int* histogram);
+
+// __host__
+// void calculate_hist(
+// 	const CudaImage& image,
+// 	CudaHistogram& histogram);
+
+// __global__
+// void calculate_cdf(
+// 	const int* histogram,
+// 	int* cdf,
+// 	int* cdf_min);
+
+// __host__
+// void calculate_cdf(
+// 	const CudaHistogram& histogram,
+// 	CudaCDF& cdf,
+// 	CudaCDF::Counter* cdf_min);
+
+// __global__
+// void generate_lut(
+// 	int elems,
+// 	const int* cdf,
+// 	const int* cdf_min,
+// 	unsigned char* lut);
+
+// __host__
+// void generate_lut(
+// 	int elems,
+// 	const CudaCDF& cdf,
+// 	CudaCDF::Counter* cdf_min,
+// 	CudaLUT& lut);
+
+// __global__
+// void apply_lut(
+// 	const void* src, size_t spitch, size_t width, size_t height,
+// 	const unsigned char* lut,
+// 	void* dst, size_t dpitch);
+
+// __host__
+// void apply_lut(
+// 	const CudaImage& src,
+// 	const CudaLUT& lut,
+// 	CudaImage& dst);
+
+// __host__
+// void equalize_hist(
+// 	CudaImage& src,
+// 	CudaHistogram& hist,
+// 	CudaCDF& cdf,
+// 	CudaCDF::Counter* cdf_min,
+// 	CudaLUT& lut,
+// 	CudaImage& dst);
+
 __global__
 void calculate_hist(
-	const void* image, size_t pitch, size_t width, size_t height,
-	int* histogram);
-
-__host__
-void calculate_hist(
-	const CudaImage& image,
-	CudaHistogram& histogram);
-
-__global__
-void calculate_cdf(
-	const int* histogram,
-	int* cdf,
-	int* cdf_min);
-
-__host__
-void calculate_cdf(
-	const CudaHistogram& histogram,
-	CudaCDF& cdf,
-	CudaCDF::Counter* cdf_min);
-
-__global__
-void generate_lut(
-	int elems,
-	const int* cdf,
-	const int* cdf_min,
-	unsigned char* lut);
-
-__host__
-void generate_lut(
-	int elems,
-	const CudaCDF& cdf,
-	CudaCDF::Counter* cdf_min,
-	CudaLUT& lut);
-
-__global__
-void apply_lut(
-	const void* src, size_t spitch, size_t width, size_t height,
-	const unsigned char* lut,
+	const void* src, size_t spitch,
+	size_t width, size_t height,
 	void* dst, size_t dpitch);
 
 __host__
-void apply_lut(
-	const CudaImage& src,
-	const CudaLUT& lut,
-	CudaImage& dst);
-
-__host__
-void equalize_hist(
-	CudaImage& src,
-	CudaHistogram& hist,
-	CudaCDF& cdf,
-	CudaCDF::Counter* cdf_min,
-	CudaLUT& lut,
-	CudaImage& dst);
+void equalize_hist(const CudaImage& src, CudaImage& dst);
 
 /**
  * @brief Performs histogram equalization of source image

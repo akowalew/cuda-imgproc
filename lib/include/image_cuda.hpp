@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include <cstddef>
+#include "image.hpp"
 
 /**
  * @brief Represents image to be used in CUDA devices, 8-bit depth
@@ -45,6 +45,22 @@ struct CudaImage
      * @param value value with which to fill
      */
     void fill(int value);
+
+    /**
+     * @brief Copies contents from host image to device
+     * @details
+     *
+     * @param img host image
+     */
+    void copy_from_host(const Image& img);
+
+    /**
+     * @brief Copies contents of the device image to host
+     * @details
+     *
+     * @param img host image to copy to
+     */
+    void copy_to_host(Image& img);
 
     /**
      * @brief Returns size in bytes of the image

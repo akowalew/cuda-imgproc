@@ -19,32 +19,32 @@
 //! Performs benchmarking of calculate_hist
 static void calculate_hist(benchmark::State& state, size_t width, size_t height)
 {
-    init();
+    // init();
 
-    CudaCDF::Counter* cdf_min;
+    // CudaCDF::Counter* cdf_min;
 
-    // Create CUDA device variables
-    auto image = CudaImage(width, height);
-    auto histogram = CudaHistogram();
-    auto lut = CudaLUT();
-    checkCudaErrors(cudaMalloc(&cdf_min, sizeof(CudaCDF::Counter)));
+    // // Create CUDA device variables
+    // auto image = CudaImage(width, height);
+    // auto histogram = CudaHistogram();
+    // auto lut = CudaLUT();
+    // checkCudaErrors(cudaMalloc(&cdf_min, sizeof(CudaCDF::Counter)));
 
-    checkCudaErrors(cudaDeviceSynchronize());
+    // checkCudaErrors(cudaDeviceSynchronize());
 
-    // Perform benchmark
-    for(auto _ : state)
-    {
-        // Do histogram equalization
-        equalize_hist(image, histogram, histogram, cdf_min, lut, image);
+    // // Perform benchmark
+    // for(auto _ : state)
+    // {
+    //     // Do histogram equalization
+    //     equalize_hist(image, histogram, histogram, cdf_min, lut, image);
 
-        // Wait for all async operations to be done
-        checkCudaErrors(cudaDeviceSynchronize());
-    }
+    //     // Wait for all async operations to be done
+    //     checkCudaErrors(cudaDeviceSynchronize());
+    // }
 
-    // Release CUDA device variables
-    checkCudaErrors(cudaFree(cdf_min));
+    // // Release CUDA device variables
+    // checkCudaErrors(cudaFree(cdf_min));
 
-    deinit();
+    // deinit();
 }
 
 BENCHMARK_CAPTURE(calculate_hist, 320x240, 320, 240)
