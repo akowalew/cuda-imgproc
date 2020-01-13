@@ -13,15 +13,14 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#include "device_launch_parameters.h"
+//#include "device_launch_parameters.h"
 //#include <stdio.h>
-#include "helper_cuda.h" 
+#include "helper_cuda.h"
 
-#include "median_cuda_v1.cuh"
+#include "median_cuda.cuh"
 
-//Kompletnie sie nie oplaca robic mniejszych.
 constexpr int K = 32;
-__global__ static void  median_kernel(unsigned char* src, unsigned char* dst, int kernel_size, int cols, int rows);
+__global__ static void  median_kernel(char* src, char* dst, int kernel_size, int cols, int rows);
 
 //Mocno polegam na tym, ze jeden pixel(subpixel) to unsigned char.
 void median(const Image& src, Image& dst, int kernel_size) {
@@ -40,18 +39,18 @@ void median(const Image& src, Image& dst, int kernel_size) {
 
 
 
-	unsigned char *src_, *dst_;
+	char *src_, *dst_;
 	checkCudaErrors(cudaSetDevice(0));
-	checkCudaErrors(cudaMalloc((void**) &src_, sizeof(unsigned char) * size));
-	checkCudaErrors(cudaMalloc((void**)&dst_, sizeof(unsigned char) * size));
+	checkCudaErrors(cudaMalloc((void**) &src_, sizeof(char) * size));
+	checkCudaErrors(cudaMalloc((void**)&dst_, sizeof(char) * size));
 	checkCudaErrors(cudaMemset(dst_, 0, size)); // To nie jest konieczne, ale przydatne w debugu.
-	checkCudaErrors(cudaMemcpy(src_, src.data, (sizeof(unsigned char) * size), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(src_, src.data, (sizeof(char) * size), cudaMemcpyHostToDevice));
 
 	median_kernel <<<block, grid >> > (src_, dst_, kernel_size, src.cols, src.rows);
 	checkCudaErrors(cudaGetLastError());
 
 	checkCudaErrors(cudaDeviceSynchronize());
-	checkCudaErrors(cudaMemcpy(dst.data, dst_, (sizeof(unsigned char) * size), cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpy(dst.data, dst_, (sizeof(char) * size), cudaMemcpyDeviceToHost));
 	checkCudaErrors(cudaFree(src_));
 	checkCudaErrors(cudaFree(dst_));
 	checkCudaErrors(cudaDeviceReset());
@@ -107,14 +106,14 @@ void median2d(const Image& src, Image& dst, int kernel_size)
 
 	};
 
-	
+
 
 }
 
 
 //KERNEL kopiujacy, bez ramki
-
-__global__ static void  median_kernell(unsigned char* src, unsigned char* dst, int kernel_size, int cols, int rows)
+/*
+__global__ static void  median_kernel(char* src, char* dst, int kernel_size, int cols, int rows)
 {	int x, y;
 
 	x = blockIdx.x * K + threadIdx.x + kernel_size;
@@ -122,51 +121,32 @@ __global__ static void  median_kernell(unsigned char* src, unsigned char* dst, i
 	int point = y * cols + x;
 	if ((x < cols - kernel_size) && (y < rows - kernel_size)) dst[point] = src[point];
 }
-
+*/
 
 
 
 //KERNEL
 
-__global__ static void  median_kernel(unsigned char * src, unsigned char* dst, int kernel_size, int cols, int rows)
-{	
+__global__ static void  median_kernel(char* src, char* dst, int kernel_size, int cols, int rows)
+{
+	// max kernel_size = 7. 14 = 2*7;
+	// (32+14)^2 to circa 2.5 kiB. Mamy lekko 16 kiB pamieci wspoldzielonej
+	__shared__ char pixbuf[(K+14) * (K + 14)];
+
+	int x, y;
 
 
-	auto adr = [cols](int x, int y) {
-		return((int)((y * cols) + x));
-	};
+	//tylko pierwszy(zerowy) warp.
+	//if (threadIdx.y != 0) goto sync;
 
-	
 
-	//wyzeruj histogram
-	unsigned char hist[256];
-	memset(hist, 0, 256);
+	sync:
+	__syncthreads();
 
-	int x = blockIdx.x * K + threadIdx.x + kernel_size;
-	int y = blockIdx.y * K + threadIdx.y + kernel_size;
-	if (y > rows - kernel_size) return;
-	if (x > cols - kernel_size) return;
-	
-	
-		
-	//napelnij histogram
-	for (int yy = y - kernel_size; yy <= y + kernel_size; yy++) for (int xx = x - kernel_size; xx <= x + kernel_size; xx++) 
-		hist[src[adr(xx, yy)]]++;
-		
-	//znajdz odpowiedniego pixela
-			//policz ile pixelai trzeba odrzucic
-		
-		int counter = kernel_size;
-		counter = ((counter * 2) + 1);
-		counter *= counter;
-		counter /= 2;
-		//szukaj pixela w histogramie
-		unsigned char pixel = 0;
-		do {
-			counter -= hist[pixel];
-			if (counter < 0) break;
-			pixel++;
-		} while (pixel != 255);
-		//zapisz pixela;
-		dst[adr(x, y)] = pixel;
+
+	x = blockIdx.x * K + threadIdx.x + kernel_size;
+	y = blockIdx.y * K + threadIdx.y + kernel_size;
+	int point = y * cols + x;
+	if( (x < cols - kernel_size) && (y < rows - kernel_size)) dst[point] = src[point];
+
 }

@@ -14,7 +14,7 @@
 #include <helper_cuda.h>
 
 #include "imgproc.hpp"
-#include "hist_cuda_v1.cuh"
+#include "hist_cuda.cuh"
 
 //! Performs benchmarking of calculate_hist
 static void calculate_hist(benchmark::State& state, size_t width, size_t height)

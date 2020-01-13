@@ -37,21 +37,13 @@ elseif(BUILD_VERSION STREQUAL "cpu_multi")
         src/hist_cpu_multi.cpp
         src/median_cpu_multi.cpp
     )
-elseif(BUILD_VERSION STREQUAL "cuda_v1")
+elseif(BUILD_VERSION STREQUAL "cuda")
     list(APPEND imgproc_SOURCES
-        src/filter_cuda_v1.cu
-        src/hist_cuda_v1.cu
+        src/filter_cuda.cu
+        src/hist_cuda.cu
         src/image_cuda.cpp
         src/imgproc_cuda.cpp
-        src/median_cuda_v1.cu
-    )
-elseif(BUILD_VERSION STREQUAL "cuda_v2")
-    list(APPEND imgproc_SOURCES
-        src/filter_cuda_v2.cu
-        src/hist_cuda_v2.cu
-        src/image_cuda.cpp
-        src/imgproc_cuda.cpp
-        src/median_cuda_v2.cu
+        src/median_cuda.cu
     )
 else()
     message(FATAL_ERROR "Wrong BUILD_VERSION=${BUILD_VERSION}")
@@ -109,9 +101,29 @@ endif()
 ###############################################################################
 
 if(BUILD_BENCHMARKING)
-    add_executable(imgproc-bench
+    list(APPEND imgproc-bench_SOURCES
         bench/bench_main.cpp
-        bench/hist_${BUILD_VERSION}_bench.cpp
+        bench/filter_bench.cpp
+        bench/hist_bench.cpp
+        bench/median_bench.cpp
+    )
+
+    if(BUILD_VERSION STREQUAL "ref")
+
+    elseif(BUILD_VERSION STREQUAL "cpu_single")
+
+    elseif(BUILD_VERSION STREQUAL "cpu_multi")
+
+    elseif(BUILD_VERSION STREQUAL "cuda")
+        list(APPEND imgproc-bench_SOURCES
+            bench/hist_cuda_bench.cpp
+        )
+    else()
+        message(FATAL_ERROR "Wrong BUILD_VERSION=${BUILD_VERSION}")
+    endif()
+
+    add_executable(imgproc-bench
+        ${imgproc-bench_SOURCES}
     )
 
     target_link_libraries(imgproc-bench
@@ -141,7 +153,7 @@ if(BUILD_TESTING)
     add_executable(imgproc-test
 	    test/test_main.cpp
 
-        test/hist_cuda1_test.cpp
+        test/hist_cuda_test.cpp
     )
 
     target_link_libraries(imgproc-test

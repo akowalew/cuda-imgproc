@@ -11,8 +11,8 @@
 
 #include "filter.hpp"
 
-//! Performs benchmarking of filter2d_8 function
-static void filter2d_8(benchmark::State& state, int width, int height, int ksize)
+//! Performs benchmarking of filter function
+static void filter(benchmark::State& state, int width, int height, int ksize)
 {
     // Create source and destination images and convolution kernel
     auto src = Image(width, height, CV_8UC1);
@@ -22,9 +22,9 @@ static void filter2d_8(benchmark::State& state, int width, int height, int ksize
     // Perform benchmark
     for(auto _ : state)
     {
-        filter2d_8(src, dst, kernel);
+        filter(src, dst, kernel);
     }
 }
 
-BENCHMARK_CAPTURE(filter2d_8, 640x480x9, 640, 480, 9)
+BENCHMARK_CAPTURE(filter, 640x480x9, 640, 480, 9)
     ->UseRealTime();

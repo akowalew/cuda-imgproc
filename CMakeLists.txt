@@ -28,8 +28,7 @@ set_property(CACHE BUILD_VERSION PROPERTY STRINGS
     ref # Reference implementation, based on OpenCV
     cpu_single # Single core implementation
     cpu_multi # Multi core implementation, based on OpenMP
-    cuda_v1 # First, not optimal CUDA implementation
-    cuda_v2 # Second, optimized CUDA implementation
+    cuda # First, not optimal CUDA implementation
 )
 
 set(BUILD_VERSION "reference" CACHE STRING "Defines function implementation version")

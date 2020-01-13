@@ -8,7 +8,7 @@
 // Date: 19.12.2019 20:33 CEST
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "hist_cuda_v1.cuh"
+#include "hist_cuda.cuh"
 
 #include <cassert>
 
