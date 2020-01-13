@@ -15,21 +15,25 @@
 
 #include <helper_cuda.h>
 
-CudaImage create_cuda_image(size_t width, size_t height)
+CudaImage::CudaImage(size_t width, size_t height)
+    :   width(width)
+    ,   height(height)
 {
-    void* data;
-    size_t pitch;
+    // Allocate memory for 2D image
     checkCudaErrors(cudaMallocPitch(&data, &pitch, width, height));
-
-    return CudaImage{data, pitch, width, height};	
 }
 
-void free_cuda_image(const CudaImage& image)
+CudaImage::~CudaImage()
 {
-    checkCudaErrors(cudaFree(image.data));
+    if(data)
+    {
+        // Free memory of 2D image
+        checkCudaErrors(cudaFree(data));
+    }
 }
 
-void fill_cuda_image(const CudaImage& image, int value)
+void CudaImage::fill(int value)
 {
-	checkCudaErrors(cudaMemset2D(image.data, image.pitch, value, image.width, image.height));
+    // Fill 2D image with value
+	checkCudaErrors(cudaMemset2D(data, pitch, value, width, height));
 }

@@ -13,8 +13,8 @@
 
 /**
  * @brief Represents image to be used in CUDA devices, 8-bit depth
- * @details 
- * 
+ * @details
+ *
  */
 struct CudaImage
 {
@@ -23,19 +23,48 @@ struct CudaImage
     size_t width;
     size_t height;
 
-    constexpr size_t size() const
+    /**
+     * @brief Constructor
+     * @details Creates image on the device with given size
+     *
+     * @param width width of the image
+     * @param height height of the image
+     */
+    CudaImage(size_t width, size_t height);
+
+    /**
+     * @brief Destructor
+     * @details Releases image from the device
+     */
+    ~CudaImage();
+
+    /**
+     * @brief Fills image with given value
+     * @details
+     *
+     * @param value value with which to fill
+     */
+    void fill(int value);
+
+    /**
+     * @brief Returns size in bytes of the image
+     * @details
+     *
+     * @return size in bytes of the image
+     */
+    size_t size() const
     {
-    	return (pitch * height);
+    	return (pitch * height * sizeof(char));
     }
 
-    constexpr size_t elems() const
+    /**
+     * @brief Returns number of elements in the image
+     * @details
+     *
+     * @return number of elements in the image
+     */
+    size_t elems() const
     {
     	return (width * height);
     }
 };
-
-CudaImage create_cuda_image(size_t width, size_t height);
-
-void free_cuda_image(const CudaImage& image);
-
-void fill_cuda_image(const CudaImage& image, int value);
