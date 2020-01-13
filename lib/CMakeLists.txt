@@ -14,27 +14,27 @@
 # Include sources common for all build versions
 list(APPEND imgproc_SOURCES
     src/debug.cpp
+    src/image.cpp
+    src/imgproc.cpp
+    src/kernel.cpp
 )
 
 if(BUILD_VERSION STREQUAL "ref")
     list(APPEND imgproc_SOURCES
         src/filter_ref.cpp
         src/hist_ref.cpp
-        src/imgproc.cpp
         src/median_ref.cpp
     )
 elseif(BUILD_VERSION STREQUAL "cpu_single")
     list(APPEND imgproc_SOURCES
         src/filter_cpu_single.cpp
         src/hist_cpu_single.cpp
-        src/imgproc.cpp
         src/median_cpu_single.cpp
     )
 elseif(BUILD_VERSION STREQUAL "cpu_multi")
     list(APPEND imgproc_SOURCES
         src/filter_cpu_multi.cpp
         src/hist_cpu_multi.cpp
-        src/imgproc.cpp
         src/median_cpu_multi.cpp
     )
 elseif(BUILD_VERSION STREQUAL "cuda_v1")
@@ -42,7 +42,6 @@ elseif(BUILD_VERSION STREQUAL "cuda_v1")
         src/filter_cuda_v1.cu
         src/hist_cuda_v1.cu
         src/image_cuda.cpp
-        src/imgproc.cpp
         src/imgproc_cuda.cpp
         src/median_cuda_v1.cu
     )
@@ -51,7 +50,6 @@ elseif(BUILD_VERSION STREQUAL "cuda_v2")
         src/filter_cuda_v2.cu
         src/hist_cuda_v2.cu
         src/image_cuda.cpp
-        src/imgproc.cpp
         src/imgproc_cuda.cpp
         src/median_cuda_v2.cu
     )
@@ -113,7 +111,7 @@ endif()
 if(BUILD_BENCHMARKING)
     add_executable(imgproc-bench
         bench/bench_main.cpp
-        bench/hist_${BUILD_VERSION}_bench.cpp
+        # bench/hist_${BUILD_VERSION}_bench.cpp
     )
 
     target_link_libraries(imgproc-bench
@@ -143,7 +141,7 @@ if(BUILD_TESTING)
     add_executable(imgproc-test
 	    test/test_main.cpp
 
-        # test/hist_cuda1_test.cpp
+        test/hist_cuda1_test.cpp
     )
 
     target_link_libraries(imgproc-test

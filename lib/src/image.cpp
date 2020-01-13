@@ -1,11 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-// image.hpp
+// image.cpp
 //
-// Contains declarations of functions related to images
+// Contains definitions of functions related to images
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma once
+#include "image.hpp"
 
-#include <opencv2/core/mat.hpp>
-
-using Image = cv::Mat;

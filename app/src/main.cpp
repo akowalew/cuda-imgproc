@@ -9,11 +9,14 @@
 
 #include <cstdio>
 
+#include <string>
+
 #include <opencv2/highgui.hpp>
 
 #include "debug.hpp"
 #include "median.hpp"
 #include "filter.hpp"
+#include "kernel.hpp"
 #include "hist.hpp"
 
 /**
@@ -25,6 +28,8 @@
  */
 Image read_image(const char* path)
 {
+    printf("*** Reading image\n");
+
 #if (CV_MAJOR_VERSION < 3)
     auto image = cv::imread(path, CV_LOAD_IMAGE_GRAYSCALE);
 #else
@@ -44,6 +49,8 @@ Image read_image(const char* path)
  */
 void write_image(const char* path, Image image)
 {
+    printf("*** Writing image\n");
+
     const auto written = cv::imwrite(path, image);
     if(!written)
     {
@@ -51,16 +58,12 @@ void write_image(const char* path, Image image)
     }
 }
 
-// Mean-Blurr 5x5 kernel
-const auto kernel_size = cv::Size(5, 5);
-const auto kernel_type = CV_32F;
-float kernel_data[] {
-    1.0/25.0f, 1.0/25.0f, 1.0/25.0f, 1.0/25.0f, 1.0/25.0f,
-    1.0/25.0f, 1.0/25.0f, 1.0/25.0f, 1.0/25.0f, 1.0/25.0f,
-    1.0/25.0f, 1.0/25.0f, 1.0/25.0f, 1.0/25.0f, 1.0/25.0f,
-    1.0/25.0f, 1.0/25.0f, 1.0/25.0f, 1.0/25.0f, 1.0/25.0f,
-    1.0/25.0f, 1.0/25.0f, 1.0/25.0f, 1.0/25.0f, 1.0/25.0f, };
-const auto kernel = Image{kernel_size, kernel_type, kernel_data};
+Image create_kernel(size_t size)
+{
+    printf("*** Creating kernel\n");
+
+    return mean_blurr_kernel(size);
+}
 
 /**
  * @brief Executes processing pipeline on given image
@@ -74,8 +77,10 @@ const auto kernel = Image{kernel_size, kernel_type, kernel_data};
  * @param image image to be processed
  * @return image after processing
  */
-Image process_image(Image image)
+Image process_image(Image image, Image kernel)
 {
+    printf("*** Processing image\n");
+
     show_image("Original", image);
 
     // We need another image to store temporary results
@@ -111,19 +116,21 @@ Image process_image(Image image)
  */
 int main(int argc, char** argv)
 {
-    if(argc < 3)
+    if(argc < 4)
     {
-        printf("Usage: ./process-image <input_path> <output_path>\n");
+        printf("Usage: ./process-image <input_path> <output_path> <kernel_size>\n");
         return 1;
     }
 
     const auto input_path = argv[1];
     const auto output_path = argv[2];
+    const auto kernel_size = std::stoul(argv[3]);
 
     try
     {
         const auto src_image = read_image(input_path);
-        const auto dst_image = process_image(src_image);
+        const auto kernel = create_kernel(kernel_size);
+        const auto dst_image = process_image(src_image, kernel);
         write_image(output_path, dst_image);
 
         wait_for_exit();
