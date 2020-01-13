@@ -18,10 +18,10 @@ void init()
 {
     // Configure CUDA device, at the moment, by default using dev 0
     checkCudaErrors(cudaSetDevice(0));
-    checkCudaErrors(cudaDeviceReset()); 
 }
 
 void deinit()
 {
-	// Nothing to do
+    // Release all resources acquired on the device
+    checkCudaErrors(cudaDeviceReset());
 }
