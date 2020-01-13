@@ -7,37 +7,63 @@
 # Date: 22.12.2019 13:59 CEST
 ###############################################################################
 
-set(BUILD_VERSION "reference" CACHE STRING "Defines function implementation version")
-set_property(CACHE BUILD_VERSION PROPERTY STRINGS ref cpu_single cpu_multi cuda_v1 cuda_v2)
-
 ###############################################################################
 # Library sources
 ###############################################################################
 
+# Include sources common for all build versions
 list(APPEND imgproc_SOURCES
-    src/filter_${BUILD_VERSION}
-    src/median_${BUILD_VERSION}
-    src/hist_${BUILD_VERSION}
+    src/debug.cpp
 )
 
-if(BUILD_VERSION STREQUAL "cuda_v1" OR BUILD_VERSION STREQUAL "cuda_v2")
+if(BUILD_VERSION STREQUAL "ref")
     list(APPEND imgproc_SOURCES
+        src/filter_ref.cpp
+        src/hist_ref.cpp
+        src/imgproc.cpp
+        src/median_ref.cpp
+    )
+elseif(BUILD_VERSION STREQUAL "cpu_single")
+    list(APPEND imgproc_SOURCES
+        src/filter_cpu_single.cpp
+        src/hist_cpu_single.cpp
+        src/imgproc.cpp
+        src/median_cpu_single.cpp
+    )
+elseif(BUILD_VERSION STREQUAL "cpu_multi")
+    list(APPEND imgproc_SOURCES
+        src/filter_cpu_multi.cpp
+        src/hist_cpu_multi.cpp
+        src/imgproc.cpp
+        src/median_cpu_multi.cpp
+    )
+elseif(BUILD_VERSION STREQUAL "cuda_v1")
+    list(APPEND imgproc_SOURCES
+        src/filter_cuda_v1.cu
+        src/hist_cuda_v1.cu
         src/image_cuda.cpp
+        src/imgproc.cpp
         src/imgproc_cuda.cpp
+        src/median_cuda_v1.cu
+    )
+elseif(BUILD_VERSION STREQUAL "cuda_v2")
+    list(APPEND imgproc_SOURCES
+        src/filter_cuda_v2.cu
+        src/hist_cuda_v2.cu
+        src/image_cuda.cpp
+        src/imgproc.cpp
+        src/imgproc_cuda.cpp
+        src/median_cuda_v2.cu
     )
 else()
-    list(APPEND imgproc_SOURCES
-        src/imgproc.cpp
-    )
+    message(FATAL_ERROR "Wrong BUILD_VERSION=${BUILD_VERSION}")
 endif()
 
 ###############################################################################
 # Library definition
 ###############################################################################
 
-add_library(imgproc OBJECT
-	src/debug.cpp
-
+add_library(imgproc
     ${imgproc_SOURCES}
 )
 

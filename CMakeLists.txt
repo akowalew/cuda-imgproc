@@ -14,12 +14,25 @@ project(cuda-imgproc VERSION 0.1.0 LANGUAGES CXX)
 # Global options
 ###############################################################################
 
+option(BUILD_APP "Whether to build process-image app or not" ON)
+option(BUILD_LIB "Whether to build imgproc lib or not" ON)
 option(BUILD_TESTING "Whether to build tests or not" ON)
 option(BUILD_DEBUG "Whether to print debug information" ON)
 option(BUILD_BENCHMARKING "Whether to build benchmarks or not" ON)
 option(BUILD_CUDA "Whether to build CUDA-related code" ON)
 option(BUILD_CONAN "Whether to use Conan package manager or not" ON)
 option(BUILD_EXTERN "Whether to build extern libs or not" ON)
+
+# Let the user decide, which version of processing algorithm to build
+set_property(CACHE BUILD_VERSION PROPERTY STRINGS
+    ref # Reference implementation, based on OpenCV
+    cpu_single # Single core implementation
+    cpu_multi # Multi core implementation, based on OpenMP
+    cuda_v1 # First, not optimal CUDA implementation
+    cuda_v2 # Second, optimized CUDA implementation
+)
+
+set(BUILD_VERSION "reference" CACHE STRING "Defines function implementation version")
 
 ###############################################################################
 # Project global options
@@ -38,6 +51,10 @@ endif()
 if(BUILD_DEBUG)
     add_definitions(-DDEBUG)
 endif()
+
+# If some CXX or CUDA standard is needed for a target, require it
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 ###############################################################################
 # Extern libraries
@@ -63,6 +80,9 @@ if(BUILD_CONAN)
     #  - adjust compiler flags
     conan_basic_setup()
 endif()
+
+# Ensure that we are using old cxx ABI (required for OpenCV...)
+add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
 ###############################################################################
 # External packages
