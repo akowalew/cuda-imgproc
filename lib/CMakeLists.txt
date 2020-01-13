@@ -111,7 +111,7 @@ endif()
 if(BUILD_BENCHMARKING)
     add_executable(imgproc-bench
         bench/bench_main.cpp
-        # bench/hist_${BUILD_VERSION}_bench.cpp
+        bench/hist_${BUILD_VERSION}_bench.cpp
     )
 
     target_link_libraries(imgproc-bench

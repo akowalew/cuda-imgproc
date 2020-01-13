@@ -14,38 +14,42 @@
 
 #include <helper_cuda.h>
 
-CudaHistogram create_cuda_histogram()
+CudaHistogram::CudaHistogram()
 {
-	int* d_data;
-	checkCudaErrors(cudaMalloc(&d_data, CudaHistogram::size()));
-
-	return CudaHistogram{d_data};
+	// Allocate histogram on the device
+	checkCudaErrors(cudaMalloc(&data, CudaHistogram::size()));
 }
 
-void free_cuda_histogram(const CudaHistogram& histogram)
+CudaHistogram::~CudaHistogram()
 {
-	checkCudaErrors(cudaFree(histogram.data));
+	if(data)
+	{
+		// Release histogram on the device
+		checkCudaErrors(cudaFree(data));
+	}
 }
 
-CudaLUT create_cuda_lut()
+CudaLUT::CudaLUT()
 {
-	unsigned char* d_data;
-	checkCudaErrors(cudaMalloc(&d_data, CudaLUT::size()));
-
-	return CudaLUT{d_data};
+	// Allocate lut on the device
+	checkCudaErrors(cudaMalloc(&data, CudaLUT::size()));
 }
 
-void free_cuda_lut(const CudaLUT& lut)
+CudaLUT::~CudaLUT()
 {
-	checkCudaErrors(cudaFree(lut.data));
+	if(data)
+	{
+		// Release lut on the device
+		checkCudaErrors(cudaFree(data));
+	}
 }
 
 __global__
 void calculate_hist(
 	const void* image, size_t pitch, size_t width, size_t height,
-	int* histogram) 
+	int* histogram)
 {
-	// In this algorithm, each kernel thread will iterate over whole 
+	// In this algorithm, each kernel thread will iterate over whole
 	// source image and count occurences of one, specific value of the histogram.
 	// Due to this, this kernel must be called with number of threads
 	// equal to length of the histogram.
@@ -87,7 +91,7 @@ void calculate_hist(
 
 __host__
 void calculate_hist(
-	const CudaImage& image, 
+	const CudaImage& image,
 	CudaHistogram& histogram)
 {
 	// We will use one CUDA grid with L threads (L is length of histogram)
@@ -100,7 +104,7 @@ void calculate_hist(
 
 __global__
 void calculate_cdf(
-	const int* histogram, 
+	const int* histogram,
 	int* cdf,
 	int* cdf_min)
 {
@@ -160,7 +164,7 @@ void calculate_cdf(
 
 __host__
 void calculate_cdf(
-	const CudaHistogram& histogram, 
+	const CudaHistogram& histogram,
 	CudaCDF& cdf,
 	CudaCDF::Counter* cdf_min)
 {
@@ -178,7 +182,7 @@ void generate_lut(
 	const int* cdf,
 	const int* cdf_min,
 	unsigned char* lut)
-{	
+{
 	// Position in buffers, according to thread index
 	const auto pos = threadIdx.x;
 
@@ -247,11 +251,11 @@ void apply_lut(
 	// We will use one CUDA grid with W x H threads
 	const auto dim_grid = dim3(width / 16, height / 16);
 	const auto dim_block = dim3(16, 16);
-	apply_lut<<<dim_grid, dim_block>>>(src.data, src.pitch, width, height, 
-		lut.data, dst.data, dst.pitch);	
+	apply_lut<<<dim_grid, dim_block>>>(src.data, src.pitch, width, height,
+		lut.data, dst.data, dst.pitch);
 
 	checkCudaErrors(cudaGetLastError());
-}      
+}
 
 __host__
 void equalize_hist(
@@ -293,13 +297,13 @@ void equalize_hist(const Image& src, Image& dst)
 	CudaCDF::Counter* cdf_min;
 
 	// Create CUDA device variables
-	auto image = create_cuda_image(width, height);
-	auto histogram = create_cuda_histogram();
-	auto lut = create_cuda_lut();
+	auto image = CudaImage(width, height);
+	auto histogram = CudaHistogram();
+	auto lut = CudaLUT();
 	checkCudaErrors(cudaMalloc(&cdf_min, sizeof(CudaCDF::Counter)));
 
 	// Copy source image into CUDA device
-	checkCudaErrors(cudaMemcpy2D(image.data, image.pitch, 
+	checkCudaErrors(cudaMemcpy2D(image.data, image.pitch,
 		src.data, src_pitch, width, height, cudaMemcpyHostToDevice));
 
 	// Do histogram equalization
@@ -312,7 +316,4 @@ void equalize_hist(const Image& src, Image& dst)
 
 	// Release CUDA device variables
 	checkCudaErrors(cudaFree(cdf_min));
-	free_cuda_lut(lut);
-	free_cuda_histogram(histogram);
-	free_cuda_image(image);
 }

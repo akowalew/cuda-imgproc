@@ -24,9 +24,9 @@ static void calculate_hist(benchmark::State& state, size_t width, size_t height)
     CudaCDF::Counter* cdf_min;
 
     // Create CUDA device variables
-    auto image = create_cuda_image(width, height);
-    auto histogram = create_cuda_histogram();
-    auto lut = create_cuda_lut();
+    auto image = CudaImage(width, height);
+    auto histogram = CudaHistogram();
+    auto lut = CudaLUT();
     checkCudaErrors(cudaMalloc(&cdf_min, sizeof(CudaCDF::Counter)));
 
     checkCudaErrors(cudaDeviceSynchronize());
@@ -43,9 +43,6 @@ static void calculate_hist(benchmark::State& state, size_t width, size_t height)
 
     // Release CUDA device variables
     checkCudaErrors(cudaFree(cdf_min));
-    free_cuda_lut(lut);
-    free_cuda_histogram(histogram);
-    free_cuda_image(image);
 
     deinit();
 }
