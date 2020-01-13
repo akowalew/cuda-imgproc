@@ -18,7 +18,7 @@
 #include <helper_cuda.h>
 
 #include "imgproc.hpp"
-#include "hist_cuda1.hpp"
+#include "hist_cuda.cuh"
 
 TEST_SUITE("CUDA v1")
 {

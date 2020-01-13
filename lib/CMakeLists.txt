@@ -152,8 +152,6 @@ endif()
 if(BUILD_TESTING)
     add_executable(imgproc-test
 	    test/test_main.cpp
-
-        test/hist_cuda_test.cpp
     )
 
     target_link_libraries(imgproc-test
