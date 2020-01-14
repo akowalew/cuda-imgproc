@@ -18,12 +18,6 @@ static void equalize_hist(benchmark::State& state, int width, int height)
     auto src = Image(width, height, CV_8UC1);
     auto dst = Image(src.rows, src.cols, CV_8UC1);
 
-    // Generate random pattern on source image
-    for(auto i = 0; i < src.total(); ++i)
-    {
-        src.data[i] = (rand() % 256);
-    }
-
     // Perform benchmark
     for(auto _ : state)
     {

@@ -18,12 +18,12 @@
 #include "image.hpp"
 #include "image_cuda.hpp"
 
+//! Helper typedef - host histogram
+using Histogram = std::array<int, 256>;
+
 /**
  * @brief Represents histogram with given counter type and analyzed data width
  * @details
- *
- * @tparam TCounter Type of the values' counter
- * @tparam DataWidth Width of analyzed data. Determines length of histogram
  */
 struct CudaHistogram
 {
@@ -31,8 +31,8 @@ struct CudaHistogram
 	// Helper typedefs
 	//
 
-	using Counter = int;
-	static constexpr auto DataWidth = 8;
+	using Counter = unsigned int;
+	static constexpr auto Length = 256;
 
 	//
 	// Public data
@@ -57,6 +57,12 @@ struct CudaHistogram
 	~CudaHistogram();
 
 	/**
+	 * @brief Copies contens of histogram to host
+	 * @details 
+	 */
+	void copy_to_host(Histogram& hist);
+
+	/**
 	 * @brief Returns length of the histogram
 	 * @details
 	 *
@@ -64,17 +70,18 @@ struct CudaHistogram
 	 */
 	static size_t length()
 	{
-		return (1 << DataWidth);
+		return Length;
 	}
 
+	/**
+	 * @brief Returns size in bytes of histogram contents
+	 * @details 
+	 * 
+	 * @return size in bytes of histogram contents
+	 */
 	static size_t size()
 	{
 		return (sizeof(Counter) * length());
-	}
-
-	static size_t data_width()
-	{
-		return DataWidth;
 	}
 
 	Counter* begin()
@@ -212,10 +219,36 @@ void hist_deinit();
 
 __global__
 void calculate_hist(
-	const void* src, size_t spitch,
+	const uchar* img, size_t pitch,
 	size_t width, size_t height,
-	void* dst, size_t dpitch);
+	unsigned int* hist);
 
+/**
+ * @brief Performs calculation of image histogram
+ * @details 
+ * 
+ * @param img source device image
+ * @param hist device histogram to be calculated
+ */
+__host__
+void calculate_hist(const CudaImage& img, CudaHistogram& hist); 
+
+/**
+ * @brief Performs calculation of image histogram
+ * @details 
+ * 
+ * @param src source host image
+ * @param hist host histogram to be calculated
+ */
+void calculate_hist(const Image& img, Histogram& hist);
+
+/**
+ * @brief Performs histogram equalization of source image
+ * @details 
+ * 
+ * @param src source device image
+ * @param dst destination device image
+ */
 __host__
 void equalize_hist(const CudaImage& src, CudaImage& dst);
 
@@ -227,3 +260,15 @@ void equalize_hist(const CudaImage& src, CudaImage& dst);
  * @param dst destination image
  */
 void equalize_hist(const Image& src, Image& dst);
+
+
+// cv calculate_hist()
+// calculate_hist(cv, cv)
+
+// ref::calculate_hist(cv, cv)
+
+// omp::calculate_hist(cv, cv)
+
+// cuda::calculate_hist(cv, cv)
+// cuda::calculate_hist(cu, cu)
+// __global__ cuda::calculate_hist(...)

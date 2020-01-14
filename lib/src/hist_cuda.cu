@@ -17,7 +17,7 @@
 CudaHistogram::CudaHistogram()
 {
 	// Allocate histogram on the device
-	checkCudaErrors(cudaMalloc(&data, CudaHistogram::size()));
+	checkCudaErrors(cudaMalloc(&data, size()));
 }
 
 CudaHistogram::~CudaHistogram()
@@ -27,6 +27,11 @@ CudaHistogram::~CudaHistogram()
 		// Release histogram on the device
 		checkCudaErrors(cudaFree(data));
 	}
+}
+
+void CudaHistogram::copy_to_host(Histogram& hist)
+{
+	checkCudaErrors(cudaMemcpy(hist.data(), data, size(), cudaMemcpyDeviceToHost));
 }
 
 CudaLUT::CudaLUT()
@@ -320,30 +325,79 @@ CudaLUT::~CudaLUT()
 constexpr auto K = 32;
 
 __global__
-void equalize_hist(
-	const void* src, size_t spitch,
+void calculate_hist(
+	const uchar* img, size_t pitch,
 	size_t width, size_t height,
-	void* dst, size_t dpitch)
+	unsigned int* hist)
 {
+	// Allocate shared memory buffer for block-wise partial histograms
+	__shared__ unsigned int s_hist[256];
 
+	// Get position of that thread in terms of images
+	const auto i = (blockIdx.y*blockDim.y + threadIdx.y);
+	const auto j = (blockIdx.x*blockDim.x + threadIdx.x);
+	if(i > width || j > height)
+	{
+		// We are out of bounds
+		return;
+	}
+
+	// Increment local counter of that thread's pixel value atomically
+	const auto val = img[i*pitch + j];
+	const auto counter = &s_hist[val];
+	atomicAdd(counter, 1);
+
+	// Wait for all threads to finish
+	__syncthreads();
+
+	// Get local thread number
+	const auto tid = (threadIdx.y*blockDim.x + threadIdx.x);
+
+	// Add local histogram to the global one atomically
+	atomicAdd(&hist[tid], s_hist[tid]);
+}
+
+__host__
+void calculate_hist(const CudaImage& img, CudaHistogram& hist)
+{
+	// Launch histogram calculation on the device
+	const auto dim_grid = dim3((img.width+K-1) / K, (img.height+K-1) / K);
+	const auto dim_block = dim3(K, K);
+	calculate_hist<<<dim_grid, dim_block>>>(
+		(uchar*)img.data, img.pitch,
+		img.width, img.height,
+		hist.data);
+
+	// Check if launch succeeded
+	checkCudaErrors(cudaGetLastError());
+}
+
+void calculate_hist(const Image& img, Histogram& hist)
+{
+	// Create memories on the device
+	auto d_img = CudaImage(img.cols, img.rows);
+	auto d_hist = CudaHistogram();
+
+	// Invoke calculation on device
+	d_img.copy_from_host(img);
+	calculate_hist(d_img, d_hist);
+	d_hist.copy_to_host(hist);
 }
 
 __host__
 void equalize_hist(const CudaImage& src, CudaImage& dst)
 {
+	// Ensure proper images sizes
 	assert(src.width == dst.width);
 	assert(src.height == dst.height);
 	const auto width = src.width;
 	const auto height = src.height;
 
-	// We will use one CUDA grid with W x H threads
-	const auto dim_grid = dim3((width+K-1) / K, (height+K-1) / K);
-	const auto dim_block = dim3(K, K);
-	equalize_hist<<<dim_grid, dim_block>>>(
-		src.data, src.pitch,
-		width, height,
-		dst.data, dst.pitch);
+	// First, calculate histogram of the source image
+	auto hist = CudaHistogram();
+	calculate_hist(src, hist);
 
+	// Check if launch succeeded
 	checkCudaErrors(cudaGetLastError());
 }
 
