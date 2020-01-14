@@ -2,15 +2,13 @@
 
 Studies project - CUDA implementation of some image processing algorithms.
 
-It consists of `process-image` target. This is a simple app to process some images, which are read using OpenCV and then written to hard disk. 
-Image processing algorithm consists of five phases:
- - splitting BGR into separate components
- - median filtering on each component
- - gaussian blurring on each component
- - histogram equalization on each component
- - merging B, G, R components into final image. 
+It consists of `process-image` application and `imgproc` library. The aim of the app is to process some grayscale images, which are read using OpenCV and then written to hard disk. 
+Image processing algorithm consists of three phases:
+ - median filtering
+ - gaussian blurring
+ - histogram equalization
 
-Most of the algorithms should be written manually. Only image reading / writing is done using OpenCV. 
+Most of the algorithms are written manually. Only image reading / writing is done using OpenCV. 
 
 ## Requirements
 
@@ -50,8 +48,8 @@ Then, if you would like to use Conan package manager, type:
 # Install Conan remotes configuration
 conan config install ../conan
 
-# Install Conan dependencies
-conan install ../ --build=missing --setting compiler.libcxx=libstdc++11
+# Install Conan dependencies using old C++ ABI
+conan install ../ --build=missing --setting compiler.libcxx=libstdc++
 ```
 
 Now you can configure build system:
@@ -65,20 +63,12 @@ cmake ../ \
     -DBUILD_BENCHMARKING=<ON/OFF> \
     -DBUILD_CUDA=<ON/OFF> \
     -DBUILD_CONAN=<ON/OFF> \
-    -DBUILD_VERSION=<reference/cpuserial/cpuparallel/cuda1/cuda2> \
+    -DBUILD_VERSION=<ref/cpu_single/cpu_multi/cuda> \
 ```
 
-<<<<<<< HEAD
 In order to build everything, just type:
 
 ```sh
-=======
-cmake ../ \
-    -DCMAKE_BUILD_TYPE=<Release/Debug> \
-    -DBUILD_TESTING=<ON/OFF> \
-    -DBUILD_VERSION=<reference/cpuserial/cpuparallel/cuda1/cuda2> 
-
->>>>>>> origin/median
 # Compile everything
 make -j${nproc}
 ```
@@ -88,13 +78,13 @@ make -j${nproc}
 There is only one app in the project: `process-image`. Its purpose is to process image at given path using `imgproc` library. Result will be printed on screen and saved to the output file:
 
 ```sh
-./bin/process-image <input_file> <output_file>
+./bin/process-image <input_file> <output_file> <kernel_size>
 ```
 
 Example: 
 
 ```sh
-./bin/process-image ../assets/sample.jpg sample_out.jpg
+./bin/process-image ../assets/sample.jpg sample_out.jpg 3
 ```
 
 ## Benchmarking
