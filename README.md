@@ -18,8 +18,9 @@ In order to build project, you will need following stuff:
  - `CUDA Runtime`, tested on version V9.1.85 (default available in Ubuntu 18.04)
  - `CMake`, at least 3.16
  - `Conan`, at least 1.10.1
- - `OpenCV` - for reading/writing images and for reference implementation of the algorithms. Must be installed globally in the system
+ - `OpenCV` - for reading/writing images and for reference implementation of the algorithms - to be installed via Conan or globally in the system
  - `Google Benchmark` - microbenchmarking library - to be installed via Conan or globally in the system
+ - `doctest` - unit testing library - to be installed via Conan
  - `cuda-samples` - handy utilities needed when developing for CUDA. Available via Git submodule
 
 OpenCV and CUDA runtime is desired to be installed on host system. Other libraries may be managed using Conan package manager. 
