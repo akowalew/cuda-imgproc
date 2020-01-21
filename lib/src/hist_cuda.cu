@@ -324,6 +324,80 @@ CudaLUT::~CudaLUT()
 //! Number of threads in block in each dimension
 constexpr auto K = 32;
 
+__device__
+unsigned int calc_cdf(const unsigned int* hist, unsigned int* cdf)
+{
+    unsigned int cdf_min;
+    unsigned int acc = 0;
+
+    // Iterate over whole histogram sn
+    for(auto i = 0; i < 256; ++i)
+    {
+    	// Get next histogram element
+        const auto hist_v = hist[i];
+        if(hist_v != 0 && acc == 0)
+        {
+        	// If this is first non-zero CDF value, store it
+            cdf_min = hist_v;
+        }
+
+        // Increase histogram accumulator and use it as next CDF value
+        acc += hist_v;
+        cdf[i] = acc;
+    }
+
+    return cdf_min;
+}
+
+__global__
+void gen_lut(const unsigned int* hist, unsigned char* lut)
+{
+	__shared__ unsigned int s_cdf[256];
+	__shared__ unsigned int s_cdf_min;
+
+	if(threadIdx.x == 0)
+	{
+		// CDF calculation is truly sequential, so only first thread may do it.
+		// Calculate CDF for given histogram and get its first non-zero value
+		s_cdf_min = calc_cdf(hist, s_cdf);
+	}
+
+	// Wait for thread #0 to complete CDF calculation
+	__syncthreads();
+
+	// Obtain value of CDF for that thread
+    const auto cdf_v = s_cdf[threadIdx.x];
+
+    // Get the difference between that CDF value and minimal one
+    const auto cdf_diff = (cdf_v - s_cdf_min);
+
+	// Obtain number of pixels in the image from the last CDF element
+    const auto elems = s_cdf[255];
+
+    // Calculate LUT value and store it
+    const auto lut_v = ((cdf_diff * 255) / (elems - s_cdf_min));
+    lut[threadIdx.x] = lut_v;
+}
+
+__global__
+void apply_lut(
+    const unsigned char* lut,
+    const unsigned char* src, size_t spitch,
+    size_t cols, size_t rows,
+    unsigned char* dst, size_t dpitch)
+{
+    const auto y = (threadIdx.y + blockDim.y*blockIdx.y);
+    const auto x = (threadIdx.x + blockDim.x*blockIdx.x);
+    if(y > rows || x > cols)
+    {
+        return;
+    }
+
+    const auto src_v = src[x + y*spitch];
+    const auto lut_v = lut[src_v];
+    dst[x + y*dpitch] = lut_v;
+}
+
 __global__
 void calculate_hist(
 	const uchar* img, size_t pitch,
