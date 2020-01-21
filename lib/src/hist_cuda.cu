@@ -17,6 +17,8 @@
 //! Number of threads in block in each dimension
 constexpr auto K = 32;
 
+// __constant__ uchar c_lut[256];
+
 CudaHistogram::CudaHistogram()
 {
 	// Allocate histogram on the device
@@ -78,7 +80,7 @@ unsigned int calc_cdf(const unsigned int* hist, unsigned int* cdf)
 }
 
 __global__
-void gen_lut(const unsigned int* hist, unsigned char* lut)
+void gen_equalize_lut(const unsigned int* hist, unsigned char* lut)
 {
     // We will need shared memory buffer for CDF values and its minimal one
 	__shared__ unsigned int s_cdf[256];
@@ -151,8 +153,7 @@ void calculate_hist(
 
 	// Increment local counter of that thread's pixel value atomically
 	const auto val = img[i*pitch + j];
-	const auto counter = &s_hist[val];
-	atomicAdd(counter, 1);
+	atomicAdd(&s_hist[val], 1);
 
 	// Wait for all threads to finish
 	__syncthreads();
