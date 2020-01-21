@@ -88,7 +88,7 @@ if(GNU)
     )
 endif()
 
-if(BUILD_VERSION STREQUAL "cuda_v1" OR BUILD_VERSION STREQUAL "cuda_v2")
+if(BUILD_VERSION STREQUAL "cuda")
     target_compile_options(imgproc
         PRIVATE
             # Allow to use constexpr functions in CUDA kernels
