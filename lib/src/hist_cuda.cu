@@ -333,12 +333,12 @@ void calculate_hist(
 	// Allocate shared memory buffer for block-wise partial histograms
 	__shared__ unsigned int s_hist[256];
 
-	// Get position of that thread in terms of images
+	// Get position of that thread in terms of image
 	const auto i = (blockIdx.y*blockDim.y + threadIdx.y);
 	const auto j = (blockIdx.x*blockDim.x + threadIdx.x);
 	if(i > width || j > height)
 	{
-		// We are out of bounds
+		// We are out of bounds, do nothing
 		return;
 	}
 
@@ -350,10 +350,8 @@ void calculate_hist(
 	// Wait for all threads to finish
 	__syncthreads();
 
-	// Get local thread number
-	const auto tid = (threadIdx.y*blockDim.x + threadIdx.x);
-
 	// Add local histogram to the global one atomically
+	const auto tid = (threadIdx.y*blockDim.x + threadIdx.x);
 	atomicAdd(&hist[tid], s_hist[tid]);
 }
 
@@ -361,7 +359,9 @@ __host__
 void calculate_hist(const CudaImage& img, CudaHistogram& hist)
 {
 	// Launch histogram calculation on the device
-	const auto dim_grid = dim3((img.width+K-1) / K, (img.height+K-1) / K);
+	const auto dim_grid_x = ((img.width+K-1) / K);
+	const auto dim_grid_y = ((img.height+K-1) / K);
+	const auto dim_grid = dim3(dim_grid_x, dim_grid_y);
 	const auto dim_block = dim3(K, K);
 	calculate_hist<<<dim_grid, dim_block>>>(
 		(uchar*)img.data, img.pitch,
