@@ -22,6 +22,7 @@ option(BUILD_BENCHMARKING "Whether to build benchmarks or not" ON)
 option(BUILD_CUDA "Whether to build CUDA-related code" ON)
 option(BUILD_CONAN "Whether to use Conan package manager or not" ON)
 option(BUILD_EXTERN "Whether to build extern libs or not" ON)
+option(BUILD_VERBOSE "Whether to enable build verbosity or not" ON)
 
 # Let the user decide, which version of processing algorithm to build
 set_property(CACHE BUILD_VERSION PROPERTY STRINGS
@@ -54,6 +55,16 @@ endif()
 # If some CXX or CUDA standard is needed for a target, require it
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+
+# If verbose, print additional messages during build
+if(BUILD_VERBOSE)
+    if(BUILD_CUDA)
+        # When building CUDA code, print registers usage
+        add_compile_options(
+            $<$<COMPILE_LANGUAGE:CUDA>:--ptxas-options=-v>
+        )
+    endif()
+endif()
 
 ###############################################################################
 # Extern libraries
