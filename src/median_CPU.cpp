@@ -64,6 +64,4 @@ void median2d_8(const Image& src, Image& dst, int kernel_size)
 
 	};
 
-	//Dziala poprawnie za pierwsza kompilacja!!
-
 }
