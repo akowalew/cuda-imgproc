@@ -44,12 +44,18 @@ int main(int argc, char** argv)
             FilterKernelType::MeanBlurr
         };
 
+        // Initialize app
+        init();
+
         // Do app logic
         const auto src = read_image(src_path);
         const auto dst = process_image(src, process_config);
         write_image(dst, dst_path);
 
         wait_for_exit();
+
+        // Deinitialize app
+        deinit();
     }
     catch(std::exception& ex)
     {

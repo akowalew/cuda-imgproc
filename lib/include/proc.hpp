@@ -17,7 +17,7 @@ void init();
  * @brief Deinitializes image processor module
  * @details It freeds allocated memories and releases acquired device
  */
-void cleanup();
+void deinit();
 
 /**
  * @brief Represents type of convolution filter kernel used in image processing

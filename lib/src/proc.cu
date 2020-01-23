@@ -12,16 +12,40 @@
 
 #include <helper_cuda.h>
 
+//
+// Private functions
+//
+
+static void set_device(int device)
+{
+	printf("*** Setting CUDA device no. %d\n", device);
+
+    checkCudaErrors(cudaSetDevice(device));
+}
+
+static void reset_device()
+{
+	printf("*** Resetting current CUDA device\n");
+
+	checkCudaErrors(cudaDeviceReset());
+}
+
+//
+// Public functions
+//
+
 void init()
 {
-    // Configure CUDA device, at the moment, by default using dev 0
-    checkCudaErrors(cudaSetDevice(0));
+	printf("*** Initializing proc module\n");
+
+	set_device(0);
 }
 
 void deinit()
 {
-    // Release all resources acquired on the device
-    checkCudaErrors(cudaDeviceReset());
+	printf("*** Deinitializing proc module\n");
+
+	reset_device();
 }
 
 Image process_image(Image img, const ProcessConfig& config)
