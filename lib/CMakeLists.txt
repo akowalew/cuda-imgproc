@@ -10,8 +10,10 @@
 
 # Include sources common for all build versions
 list(APPEND imgproc_SOURCES
+    src/cuda/proc_cuda.cu
+
     src/debug.cpp
-    src/proc.cu
+    src/proc.cpp
     src/reader.cpp
     src/writer.cpp
 )
@@ -27,6 +29,10 @@ add_library(imgproc
 target_include_directories(imgproc
     PUBLIC
         include
+
+    PRIVATE
+        src/
+        src/cuda
 )
 
 target_link_libraries(imgproc

@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// proc.cu
+// proc_cuda.cu
 //
-// Contains definitions of functions related to proc module
+// Contains definitions of functions related to CUDA image processor module
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "proc.hpp"
+#include "proc_cuda.cuh"
 
 #include <cstdio>
 
@@ -34,23 +34,23 @@ static void reset_device()
 // Public functions
 //
 
-void init()
+void init_cuda()
 {
-	printf("*** Initializing proc module\n");
+	printf("*** Initializing proc CUDA module\n");
 
 	set_device(0);
 }
 
-void deinit()
+void deinit_cuda()
 {
-	printf("*** Deinitializing proc module\n");
+	printf("*** Deinitializing proc CUDA module\n");
 
 	reset_device();
 }
 
-Image process_image(Image img, const ProcessConfig& config)
+Image process_image_cuda(Image img, const ProcessConfig& config)
 {
-	printf("*** Processing image\n");
+	printf("*** Processing image with CUDA\n");
 
 	return img;
 }
