@@ -2,13 +2,10 @@
 # CMakeLists.txt
 #
 # Defines project structure, build options and its targets
-#
-# Author: Adam Kowalewski
-# Date: 4.11.2019 18:06 CEST
 ###############################################################################
 
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
-project(cuda-imgproc VERSION 0.1.0 LANGUAGES CXX)
+project(cuda-imgproc VERSION 0.1.0 LANGUAGES CXX CUDA)
 
 ###############################################################################
 # Global options
@@ -19,29 +16,13 @@ option(BUILD_LIB "Whether to build imgproc lib or not" ON)
 option(BUILD_TESTING "Whether to build tests or not" ON)
 option(BUILD_DEBUG "Whether to print debug information" ON)
 option(BUILD_BENCHMARKING "Whether to build benchmarks or not" ON)
-option(BUILD_CUDA "Whether to build CUDA-related code" ON)
 option(BUILD_CONAN "Whether to use Conan package manager or not" ON)
 option(BUILD_EXTERN "Whether to build extern libs or not" ON)
 option(BUILD_VERBOSE "Whether to enable build verbosity or not" ON)
 
-# Let the user decide, which version of processing algorithm to build
-set_property(CACHE BUILD_VERSION PROPERTY STRINGS
-    ref # Reference implementation, based on OpenCV
-    cpu_single # Single core implementation
-    cpu_multi # Multi core implementation, based on OpenMP
-    cuda # First, not optimal CUDA implementation
-)
-
-set(BUILD_VERSION "reference" CACHE STRING "Defines function implementation version")
-
 ###############################################################################
 # Project global options
 ###############################################################################
-
-if(BUILD_CUDA)
-    # If needed, enable CUDA language compilers
-    enable_language(CUDA)
-endif()
 
 if(BUILD_TESTING)
     # If unit-tests needed, enable CMake testing suite
@@ -58,12 +39,10 @@ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 # If verbose, print additional messages during build
 if(BUILD_VERBOSE)
-    if(BUILD_CUDA)
-        # When building CUDA code, print registers usage
-        add_compile_options(
-            $<$<COMPILE_LANGUAGE:CUDA>:--ptxas-options=-v>
-        )
-    endif()
+    # When building CUDA code, print registers usage
+    add_compile_options(
+        $<$<COMPILE_LANGUAGE:CUDA>:--ptxas-options=-v>
+    )
 endif()
 
 ###############################################################################

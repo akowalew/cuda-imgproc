@@ -1,14 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
-// imgproc_cuda.cpp
+// proc.cu
 //
-// Contains definitions of functions related to imgproc library
-// CUDA implementation
-//
-// Author: akowalew (ram.techen@gmail.com)
-// Date: 27.12.2019 12:10 CEST
+// Contains definitions of functions related to proc module
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "imgproc_cuda.hpp"
+#include "proc.hpp"
+
+#include <cstdio>
 
 #include <cuda_runtime.h>
 
@@ -24,4 +22,11 @@ void deinit()
 {
     // Release all resources acquired on the device
     checkCudaErrors(cudaDeviceReset());
+}
+
+Image process_image(Image img, const ProcessConfig& config)
+{
+	printf("*** Processing image\n");
+
+	return img;
 }

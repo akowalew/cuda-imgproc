@@ -1,10 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
-// hist_cuda_v1_test.cpp
+// hist_test.cu
 //
-// Contains implementation of tests for hist_cuda_v1 module
-//
-// Author: akowalew (ram.techen@gmail.com)
-// Date: 19.12.2019 22:51 CEST
+// Contains implementation of tests for hist module
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "doctest.h"
@@ -19,9 +16,6 @@
 
 #include "imgproc.hpp"
 #include "hist_cuda.cuh"
-
-TEST_SUITE("CUDA v1")
-{
 
 TEST_CASE("We can perform operations on images histograms")
 {
@@ -102,5 +96,3 @@ TEST_CASE("We can perform operations on images histograms")
 	} // TEST_CASE("Histograms may be calculated for an image")
 
 } // TEST_CASE("We can perform operations on images histograms")
-
-} // TEST_SUITE("CUDA1")

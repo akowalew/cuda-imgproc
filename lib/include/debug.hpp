@@ -2,9 +2,6 @@
 // debug.hpp
 //
 // Contains declaration of image debug functions
-//
-// Author: akowalew (ram.techen@gmail.com)
-// Date: 29.11.2019 1:17 CEST
 ///////////////////////////////////////////////////////////////////////////////
 
 #pragma once
@@ -17,10 +14,10 @@
  * to may use same image instance for multiple windows (e.g. after
  * executing multiple algorithms in place on one image)
  *
- * @param name window name
  * @param image image to be displayed
+ * @param name window name
  */
-void show_image(const char* name, Image image);
+void show_image(Image image, const char* name);
 
 /**
  * @brief Hangs until any key is pressed

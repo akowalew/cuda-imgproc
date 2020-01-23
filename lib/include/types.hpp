@@ -1,8 +1,11 @@
 ///////////////////////////////////////////////////////////////////////////////
-// hist_test.cpp
+// types.hpp
 //
-// Contains implementation of tests for hist module
-//
-// Author: akowalew (ram.techen@gmail.com)
-// Date: 23.12.2019 01:56 CEST
+// Contains declarations of types used across the library
 ///////////////////////////////////////////////////////////////////////////////
+
+#pragma once
+
+#include <cstddef>
+
+using uchar = unsigned char;

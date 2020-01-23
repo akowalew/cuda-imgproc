@@ -1,14 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// hist_cuda1.cu
+// hist.cu
 //
 // Contains definitions of functions working on images histograms
-// CUDA1 version
-//
-// Author: akowalew (ram.techen@gmail.com)
-// Date: 19.12.2019 20:33 CEST
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "hist_cuda.cuh"
+#include "hist.hpp"
 
 #include <cassert>
 

@@ -2,9 +2,6 @@
 # CMakeLists.txt
 #
 # Defines build structure for `imgproc` library
-#
-# Author: Adam Kowalewski
-# Date: 22.12.2019 13:59 CEST
 ###############################################################################
 
 ###############################################################################
@@ -14,40 +11,10 @@
 # Include sources common for all build versions
 list(APPEND imgproc_SOURCES
     src/debug.cpp
-    src/image.cpp
-    src/imgproc.cpp
-    src/kernel.cpp
+    src/proc.cu
+    src/reader.cpp
+    src/writer.cpp
 )
-
-if(BUILD_VERSION STREQUAL "ref")
-    list(APPEND imgproc_SOURCES
-        src/filter_ref.cpp
-        src/hist_ref.cpp
-        src/median_ref.cpp
-    )
-elseif(BUILD_VERSION STREQUAL "cpu_single")
-    list(APPEND imgproc_SOURCES
-        src/filter_cpu_single.cpp
-        src/hist_cpu_single.cpp
-        src/median_cpu_single.cpp
-    )
-elseif(BUILD_VERSION STREQUAL "cpu_multi")
-    list(APPEND imgproc_SOURCES
-        src/filter_cpu_multi.cpp
-        src/hist_cpu_multi.cpp
-        src/median_cpu_multi.cpp
-    )
-elseif(BUILD_VERSION STREQUAL "cuda")
-    list(APPEND imgproc_SOURCES
-        src/filter_cuda.cu
-        src/hist_cuda.cu
-        src/image_cuda.cpp
-        src/imgproc_cuda.cpp
-        src/median_cuda.cu
-    )
-else()
-    message(FATAL_ERROR "Wrong BUILD_VERSION=${BUILD_VERSION}")
-endif()
 
 ###############################################################################
 # Library definition
@@ -68,11 +35,6 @@ target_link_libraries(imgproc
         cuda-samples
 )
 
-if(BUILD_VERSION STREQUAL "cpu_multi" AND OpenMP_CXX_FOUND)
-    # If OpenMP is needed to build cpu_multi, link against it
-    target_link_libraries(imgproc PRIVATE OpenMP::OpenMP_CXX)
-endif()
-
 set_target_properties(imgproc
     PROPERTIES
         CXX_STANDARD 17
@@ -88,13 +50,11 @@ if(GNU)
     )
 endif()
 
-if(BUILD_VERSION STREQUAL "cuda")
-    target_compile_options(imgproc
-        PRIVATE
-            # Allow to use constexpr functions in CUDA kernels
-            $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>
-    )
-endif()
+target_compile_options(imgproc
+    PRIVATE
+        # Allow to use constexpr functions in CUDA kernels
+        $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>
+)
 
 ###############################################################################
 # Benchmarks
@@ -107,20 +67,6 @@ if(BUILD_BENCHMARKING)
         bench/hist_bench.cpp
         bench/median_bench.cpp
     )
-
-    if(BUILD_VERSION STREQUAL "ref")
-
-    elseif(BUILD_VERSION STREQUAL "cpu_single")
-
-    elseif(BUILD_VERSION STREQUAL "cpu_multi")
-
-    elseif(BUILD_VERSION STREQUAL "cuda")
-        list(APPEND imgproc-bench_SOURCES
-            bench/hist_cuda_bench.cpp
-        )
-    else()
-        message(FATAL_ERROR "Wrong BUILD_VERSION=${BUILD_VERSION}")
-    endif()
 
     add_executable(imgproc-bench
         ${imgproc-bench_SOURCES}

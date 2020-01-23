@@ -1,8 +1,11 @@
 ///////////////////////////////////////////////////////////////////////////////
-// test_main.cpp
+// reader.hpp
 //
-// Entry point for tests of imgproc library
+// Contains declarations for image Reader module
 ///////////////////////////////////////////////////////////////////////////////
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "doctest.h"
+#pragma once
+
+#include "image.hpp"
+
+Image read_image(const char* path);

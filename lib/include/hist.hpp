@@ -2,33 +2,35 @@
 // hist.hpp
 //
 // Contains declarations of functions working on images histograms
-//
-// Author: akowalew (ram.techen@gmail.com)
-// Date: 17.11.2019 20:24 CEST
 ///////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
-#include "image.hpp"
+//
+// Forward declarations
+//
+
+struct Image;
+
+//
+// Public declarations
+//
+
+struct Histogram;
 
 /**
- * @brief Initializes hist module
+ * @brief Calculates histogram of given image
  * @details 
+ * 
+ * @param hist histogram to calculate
+ * @param img source image
  */
-void hist_init();
+void calculate_hist(Histogram* hist, const Image* img);
 
-/**
- * @brief Deinitializes hist module
- * @details 
- */
-void hist_deinit();
+Histogram* calculate_hist(const Image* img);
 
-/**
- * @brief Performs histogram equalization of source image
- * @details
- *
- * @param src source image
- * @param dst destination image
- */
-void equalize_hist(const Image& src, Image& dst);
 
+
+void equalize_hist(Image* dst, const Image* src);
+
+Image* equalize_hist(const Image* src);

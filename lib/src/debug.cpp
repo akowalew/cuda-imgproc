@@ -1,10 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
-// debug.cpp
+// debug.cu
 //
 // Contains definitions of image debug functions
-//
-// Author: akowalew (ram.techen@gmail.com)
-// Date: 28.11.2019 1:18 CEST
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "debug.hpp"
@@ -13,21 +10,10 @@
 
 #include <opencv2/highgui.hpp>
 
-namespace {
-
-std::vector<Image> g_images; //! Global array of images to be displayed
-
-} //
-
-void show_image(const char* name, Image image)
+void show_image(Image image, const char* name)
 {
-	// First, clone that image to have local copy
-	auto it = g_images.insert(g_images.end(), image.clone());
-	auto& cloned = *it;
-
-	// Then, display our cloned image
     cv::namedWindow(name, cv::WINDOW_AUTOSIZE);
-    cv::imshow(name, cloned);
+    cv::imshow(name, image);
 }
 
 void wait_for_exit()

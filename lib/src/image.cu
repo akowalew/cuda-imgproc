@@ -1,13 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
-// image_cuda.cpp
+// image.cu
 //
 // Contains definitions of stuff related to images for CUDA
-//
-// Author: akowalew (ram.techen@gmail.com)
-// Date: 20.12.2019 1:10 CEST
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "image_cuda.hpp"
+#include "image.hpp"
 
 #include <cassert>
 
