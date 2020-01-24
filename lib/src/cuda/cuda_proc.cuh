@@ -13,13 +13,13 @@
  * @details It queries for available compute devices and selects one of them
  * to use in calculations. 
  */
-void cuda_init();
+void cuda_proc_init();
 
 /**
  * @brief Deinitializes image processor module
  * @details It freeds allocated memories and releases acquired device
  */
-void cuda_deinit();
+void cuda_proc_deinit();
 
 /**
  * @brief Processes the image according to specified configuration

@@ -13,13 +13,14 @@
  * @details It queries for available compute devices and selects one of them
  * to use in calculations. 
  */
-void init();
+void proc_init();
 
 /**
  * @brief Deinitializes image processor module
  * @details It freeds allocated memories and releases acquired device
  */
-void deinit();
+void proc_deinit();
+
 
 struct MedianKernelSize
 {
@@ -32,6 +33,7 @@ struct FilterKernelSize
 	size_t value;
 	constexpr operator size_t() const noexcept { return value; }
 };
+
 
 /**
  * @brief Image processing configuration

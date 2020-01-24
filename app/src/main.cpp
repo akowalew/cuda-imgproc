@@ -44,7 +44,7 @@ int main(int argc, char** argv)
         };
 
         // Initialize app
-        init();
+        proc_init();
 
         // Do app logic
         const auto src = read_image(src_path);
@@ -54,7 +54,7 @@ int main(int argc, char** argv)
         wait_for_exit();
 
         // Deinitialize app
-        deinit();
+        proc_deinit();
     }
     catch(std::exception& ex)
     {

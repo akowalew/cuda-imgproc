@@ -57,7 +57,7 @@ static HostImage cuda_process_host_image(const HostImage& h_src, const ProcessCo
 // Public functions
 //
 
-void cuda_init()
+void cuda_proc_init()
 {
 	printf("*** Initializing CUDA proc module\n");
 
@@ -68,7 +68,7 @@ void cuda_init()
 	cuda_hist_init();
 }
 
-void cuda_deinit()
+void cuda_proc_deinit()
 {
 	printf("*** Deinitializing CUDA proc module\n");
 

@@ -14,18 +14,18 @@
 // Public functions
 //
 
-void init()
+void proc_init()
 {
 	printf("*** Initializing proc module\n");
 
-	cuda_init();
+	cuda_proc_init();
 }
 
-void deinit()
+void proc_deinit()
 {
 	printf("*** Deinitializing proc module\n");
 
-	cuda_deinit();
+	cuda_proc_deinit();
 }
 
 Image process_image(const Image& img, const ProcessConfig& config)

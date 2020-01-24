@@ -13,12 +13,20 @@
 
 #include <helper_cuda.h>
 
+//
+// Private definitions
+//
+
 //! Number of threads in block in each dimension
 static constexpr auto K = 32;
 
 static CudaHistogram g_eq_hist;
 
 static CudaLUT g_eq_lut;
+
+//
+// Public definitions
+//
 
 void cuda_hist_init()
 {
