@@ -26,6 +26,8 @@ CudaImage cuda_create_image(size_t cols, size_t rows)
 	size_t pitch;
 	checkCudaErrors(cudaMallocPitch(&data, &pitch, width, height));
 
+	printf("*** Created CUDA image at 0x%p and pitch %lu\n", data, pitch);
+
 	// Return created image
 	return CudaImage { data, pitch, cols, rows };
 }

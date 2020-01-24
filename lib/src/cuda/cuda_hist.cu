@@ -121,24 +121,24 @@ CUDALUT cuda_gen_equalize_lut(const CudaHistogram& hist)
 
 __global__
 void cuda_calculate_hist(
+	uint* hist,
 	const uchar* img, size_t pitch,
-	size_t cols, size_t rows,
-	uint* hist)
+	size_t cols, size_t rows)
 {
 	// Allocate shared memory buffer for block-wise partial histograms
-	__shared__ uint s_hist[256];
+	__shared__ uint s_hist[HistogramSize];
 
 	// Get position of that thread in terms of image
-	const auto i = (blockIdx.y*blockDim.y + threadIdx.y);
-	const auto j = (blockIdx.x*blockDim.x + threadIdx.x);
-	if(i > cols || j > rows)
+	const auto y = (blockIdx.y*blockDim.y + threadIdx.y);
+	const auto x = (blockIdx.x*blockDim.x + threadIdx.x);
+	if(y > rows || x > cols)
 	{
 		// We are out of bounds, do nothing
 		return;
 	}
 
 	// Increment local counter of that thread's pixel value atomically
-	const auto val = img[i*pitch + j];
+	const auto val = img[y*pitch + x];
 	atomicAdd(&s_hist[val], 1);
 
 	// Wait for all threads to finish
@@ -146,7 +146,10 @@ void cuda_calculate_hist(
 
 	// Add local histogram to the global one atomically
 	const auto tid = (threadIdx.y*blockDim.x + threadIdx.x);
-	atomicAdd(&hist[tid], s_hist[tid]);
+	if(tid < HistogramSize)
+	{
+		atomicAdd(&hist[tid], s_hist[tid]);
+	}
 }
 
 void cuda_calculate_hist(CudaHistogram& hist, const CudaImage& img)
@@ -154,6 +157,8 @@ void cuda_calculate_hist(CudaHistogram& hist, const CudaImage& img)
 	// Retrieve device image shape
 	const auto cols = img.cols;
 	const auto rows = img.rows;
+
+	printf("*** Calculating histogram with CUDA of image %lux%lu\n", cols, rows);
 
 	// Use const sized blocks
 	const auto dim_block = dim3(K, K);
@@ -165,13 +170,13 @@ void cuda_calculate_hist(CudaHistogram& hist, const CudaImage& img)
 
 	// Launch histogram calculation
 	cuda_calculate_hist<<<dim_grid, dim_block>>>(
+		hist.data,
 		(uchar*)img.data, img.pitch,
-		cols, rows,
-		hist.data);
+		cols, rows);
 
 	// Check if launch succeeded
 	checkCudaErrors(cudaGetLastError());
-
+	
 	// Wait for device finish
 	checkCudaErrors(cudaDeviceSynchronize());
 }
