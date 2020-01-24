@@ -1,39 +1,26 @@
 ///////////////////////////////////////////////////////////////////////////////
-// lut.hpp
+// cuda_lut.cuh
 //
-// Contains declarations of functions working on images histograms
+// Contains declarations for CUDA LUTs manager
 ///////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
-#include "types.hpp"
+#include "cuda_image.cuh"
 
-//
-// Forward declarations
-//
+constexpr auto LUTSize = 256;
 
-struct Image;
+struct CUDALUT
+{
+	using Type = uchar;
 
-//
-// Public declarations
-//
+	Type* data;
+};
 
-struct LUT;
+CUDALUT cuda_create_lut();
 
-using LUTValue = uchar;
+void cuda_free_lut(CUDALUT& lut);
 
-LUT* make_lut();
+void cuda_apply_lut(CudaImage& dst, const CudaImage& src, const CUDALUT& lut);
 
-LUT* make_lut(LUTValue value);
-
-void free_lut(LUT* lut);
-
-void get_lut_data(const LUT* lut, void* data, size_t size);
-
-void set_lut_data(LUT* lut, const void* data, size_t size);
-
-void bind_lut(const LUT* lut);
-
-void apply_lut(Image* dst, const Image* src);
-
-Image* apply_lut(const Image* src, const LUT* lut);
+CudaImage cuda_apply_lut(const CudaImage& src, const CUDALUT& lut);
