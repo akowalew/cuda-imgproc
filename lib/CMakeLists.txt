@@ -12,7 +12,9 @@
 list(APPEND imgproc_SOURCES
     src/cuda/cuda_filter.cu
     src/cuda/cuda_hist.cu
+    src/cuda/cuda_host_image.cu
     src/cuda/cuda_image.cu
+    src/cuda/cuda_kernel.cu
     src/cuda/cuda_lut.cu
     src/cuda/cuda_median.cu
     src/cuda/cuda_proc.cu
