@@ -22,6 +22,12 @@ struct CudaHistogram
 	Type* data;
 };
 
+
+void cuda_hist_init();
+
+void cuda_hist_deinit();
+
+
 CudaHistogram cuda_create_histogram();
 
 void cuda_free_histogram(CudaHistogram& hist);
@@ -32,9 +38,9 @@ void cuda_calculate_hist(CudaHistogram& hist, const CudaImage& img);
 CudaHistogram cuda_calculate_hist(const CudaImage& src);
 
 
-void cuda_gen_equalize_lut(CUDALUT& lut, const CudaHistogram& hist);
+void cuda_gen_equalize_lut(CudaLUT& lut, const CudaHistogram& hist);
 
-CUDALUT cuda_gen_equalize_lut(const CudaHistogram& hist);
+CudaLUT cuda_gen_equalize_lut(const CudaHistogram& hist);
 
 
 void cuda_equalize_hist(CudaImage& dst, const CudaImage& src);

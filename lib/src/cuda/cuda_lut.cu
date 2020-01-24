@@ -13,7 +13,7 @@
 //! Number of threads in block in each dimension
 constexpr auto K = 32;
 
-CUDALUT cuda_create_lut()
+CudaLUT cuda_create_lut()
 {
 	// Get size of the buffer for the lut
 	const auto size = (LUTSize * sizeof(uchar));
@@ -26,7 +26,7 @@ CUDALUT cuda_create_lut()
 	return { (uchar*) data };
 }
 
-void cuda_free_lut(CUDALUT& lut)
+void cuda_free_lut(CudaLUT& lut)
 {
 	// Release device LUT
 	checkCudaErrors(cudaFree(lut.data));
@@ -55,7 +55,7 @@ void cuda_apply_lut(
     dst[x + y*dpitch] = lut_v;
 }
 
-void cuda_apply_lut(CudaImage& dst, const CudaImage& src, const CUDALUT& lut)
+void cuda_apply_lut(CudaImage& dst, const CudaImage& src, const CudaLUT& lut)
 {
 	// Ensure proper images size
 	assert(src.cols == dst.cols);
@@ -87,7 +87,7 @@ void cuda_apply_lut(CudaImage& dst, const CudaImage& src, const CUDALUT& lut)
 	checkCudaErrors(cudaDeviceSynchronize());
 }
 
-CudaImage cuda_apply_lut(const CudaImage& src, const CUDALUT& lut)
+CudaImage cuda_apply_lut(const CudaImage& src, const CudaLUT& lut)
 {
 	// Allocate image on the device
 	auto dst = cuda_create_image(src.cols, src.rows);

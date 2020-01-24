@@ -14,7 +14,27 @@
 #include <helper_cuda.h>
 
 //! Number of threads in block in each dimension
-constexpr auto K = 32;
+static constexpr auto K = 32;
+
+static CudaHistogram g_eq_hist;
+
+static CudaLUT g_eq_lut;
+
+void cuda_hist_init()
+{
+	printf("*** Initializing CUDA hist module\n");
+
+	g_eq_hist = cuda_create_histogram();
+	g_eq_lut = cuda_create_lut();
+}
+
+void cuda_hist_deinit()
+{
+	printf("*** Deinitializing CUDA hist module\n");
+
+	cuda_free_lut(g_eq_lut);
+	cuda_free_histogram(g_eq_hist);
+}
 
 CudaHistogram cuda_create_histogram()
 {
@@ -91,7 +111,7 @@ void cuda_gen_equalize_lut(uchar* lut, const uint* hist)
     lut[threadIdx.x] = lut_v;
 }
 
-void cuda_gen_equalize_lut(CUDALUT& lut, const CudaHistogram& hist)
+void cuda_gen_equalize_lut(CudaLUT& lut, const CudaHistogram& hist)
 {
 	// Use only one, linear, const sized block
 	const auto dim_block = dim3(LUTSize);
@@ -107,7 +127,7 @@ void cuda_gen_equalize_lut(CUDALUT& lut, const CudaHistogram& hist)
 	checkCudaErrors(cudaDeviceSynchronize());
 }
 
-CUDALUT cuda_gen_equalize_lut(const CudaHistogram& hist)
+CudaLUT cuda_gen_equalize_lut(const CudaHistogram& hist)
 {
 	// Allocate lut on the device
 	auto lut = cuda_create_lut();
@@ -199,12 +219,9 @@ void cuda_equalize_hist(CudaImage& dst, const CudaImage& src)
 	assert(src.cols == dst.cols);
 	assert(src.rows == dst.rows);
 
-	auto hist = cuda_calculate_hist(src);
-	auto lut = cuda_gen_equalize_lut(hist);
-	cuda_apply_lut(dst, src, lut);
-
-	cuda_free_lut(lut);
-	cuda_free_histogram(hist);
+	cuda_calculate_hist(g_eq_hist, src);
+	cuda_gen_equalize_lut(g_eq_lut, g_eq_hist);
+	cuda_apply_lut(dst, src, g_eq_lut);
 }
 
 CudaImage cuda_equalize_hist(const CudaImage& src)

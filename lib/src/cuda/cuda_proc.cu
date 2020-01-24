@@ -61,13 +61,21 @@ void cuda_init()
 {
 	printf("*** Initializing CUDA proc module\n");
 
+	// Initialize device
 	cuda_set_device(0);
+
+	// Initialize modules
+	cuda_hist_init();
 }
 
 void cuda_deinit()
 {
 	printf("*** Deinitializing CUDA proc module\n");
 
+	// Deinitialize modules
+	cuda_hist_deinit();
+
+	// Deinitialize device
 	cuda_reset_device();
 }
 
