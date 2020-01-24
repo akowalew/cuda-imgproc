@@ -8,7 +8,7 @@
 
 #include <cstdio>
 
-#include "proc_cuda.cuh"
+#include "cuda_proc.cuh"
 
 //
 // Public functions
@@ -18,19 +18,19 @@ void init()
 {
 	printf("*** Initializing proc module\n");
 
-	init_cuda();
+	cuda_init();
 }
 
 void deinit()
 {
 	printf("*** Deinitializing proc module\n");
 
-	deinit_cuda();
+	cuda_deinit();
 }
 
-Image process_image(Image img, const ProcessConfig& config)
+Image process_image(const Image& img, const ProcessConfig& config)
 {
 	printf("*** Processing image\n");
 
-	return process_image_cuda(img, config);
+	return cuda_process_image(img, config);
 }

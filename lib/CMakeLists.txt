@@ -10,9 +10,14 @@
 
 # Include sources common for all build versions
 list(APPEND imgproc_SOURCES
-    src/cuda/proc_cuda.cu
+    src/cuda/cuda_filter.cu
+    src/cuda/cuda_hist.cu
+    src/cuda/cuda_image.cu
+    src/cuda/cuda_median.cu
+    src/cuda/cuda_proc.cu
 
     src/debug.cpp
+    src/image.cpp
     src/proc.cpp
     src/reader.cpp
     src/writer.cpp

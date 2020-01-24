@@ -21,19 +21,6 @@ void init();
  */
 void deinit();
 
-/**
- * @brief Represents type of convolution filter kernel used in image processing
- * @details
- * 
- */
-enum class FilterKernelType
-{
-	MeanBlurr = 0 //! Mean blurring kernel. Takes mean of all elements
-	// GaussianBlurr
-	// Laplace
-	// Custom
-};
-
 struct MedianKernelSize
 {
 	size_t value;
@@ -54,7 +41,6 @@ struct ProcessConfig
 {
 	MedianKernelSize median_ksize {3}; //! Size of median filter kernel
 	FilterKernelSize filter_ksize {3}; //! Size of convolution filter
-	FilterKernelType filter_ktype {FilterKernelType::MeanBlurr}; //! Type of convolution filter kernel
 };
 
 /**
@@ -69,4 +55,4 @@ struct ProcessConfig
  * 
  * @return processing result
  */
-Image process_image(Image img, const ProcessConfig& config);
+Image process_image(const Image& img, const ProcessConfig& config);

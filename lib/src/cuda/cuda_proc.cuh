@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// proc_cuda.cuh
+// cuda_proc.cuh
 // 
 // Contains declarations for CUDA image processor module
 ///////////////////////////////////////////////////////////////////////////////
@@ -13,13 +13,13 @@
  * @details It queries for available compute devices and selects one of them
  * to use in calculations. 
  */
-void init_cuda();
+void cuda_init();
 
 /**
  * @brief Deinitializes image processor module
  * @details It freeds allocated memories and releases acquired device
  */
-void deinit_cuda();
+void cuda_deinit();
 
 /**
  * @brief Processes the image according to specified configuration
@@ -33,4 +33,4 @@ void deinit_cuda();
  * 
  * @return processing result
  */
-Image process_image_cuda(Image img, const ProcessConfig& config);
+Image cuda_process_image(const Image& img, const ProcessConfig& config);

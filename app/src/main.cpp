@@ -40,8 +40,7 @@ int main(int argc, char** argv)
         const auto dst_path = argv[2];
         const auto process_config = ProcessConfig {
             MedianKernelSize{std::stoul(argv[3])},
-            FilterKernelSize{std::stoul(argv[4])},
-            FilterKernelType::MeanBlurr
+            FilterKernelSize{std::stoul(argv[4])}
         };
 
         // Initialize app
