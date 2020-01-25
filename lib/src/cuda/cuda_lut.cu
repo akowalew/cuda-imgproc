@@ -6,9 +6,13 @@
 
 #include "cuda_lut.cuh"
 
+#include <cstdio>
+
 #include <cuda_runtime.h>
 
 #include <helper_cuda.h>
+
+#include "log.hpp"
 
 //! Number of threads in block in each dimension
 constexpr auto K = 32;
@@ -55,7 +59,7 @@ void cuda_apply_lut(
     dst[x + y*dpitch] = lut_v;
 }
 
-void cuda_apply_lut(CudaImage& dst, const CudaImage& src, const CudaLUT& lut)
+void cuda_apply_lut_async(CudaImage& dst, const CudaImage& src, const CudaLUT& lut)
 {
 	// Ensure proper images size
 	assert(src.cols == dst.cols);
@@ -64,6 +68,8 @@ void cuda_apply_lut(CudaImage& dst, const CudaImage& src, const CudaLUT& lut)
 	// Retrieve device image shape
 	const auto cols = src.cols;
 	const auto rows = src.rows;
+
+	LOG_INFO("Applying LUT with CUDA on image %lux%lu\n", cols, rows);
 
 	// Use const sized 2D blocks
 	const auto dim_block = dim3(K, K);
@@ -82,6 +88,12 @@ void cuda_apply_lut(CudaImage& dst, const CudaImage& src, const CudaLUT& lut)
 
 	// Check if launch succeeded
 	checkCudaErrors(cudaGetLastError());
+}
+
+void cuda_apply_lut(CudaImage& dst, const CudaImage& src, const CudaLUT& lut)
+{
+	// Launch applying of the LUT
+	cuda_apply_lut_async(dst, src, lut);
 
 	// Wait for device finish
 	checkCudaErrors(cudaDeviceSynchronize());

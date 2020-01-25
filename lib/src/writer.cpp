@@ -11,9 +11,11 @@
 
 #include <opencv2/highgui.hpp>
 
+#include "log.hpp"
+
 void write_image(Image image, const char* path)
 {
-    printf("*** Writing image to '%s'\n", path);
+    LOG_INFO("Writing image to '%s'\n", path);
 
     const auto written = cv::imwrite(path, image);
     if(!written)

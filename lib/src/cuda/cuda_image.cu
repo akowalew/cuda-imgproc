@@ -13,9 +13,11 @@
 
 #include <helper_cuda.h>
 
+#include "log.hpp"
+
 CudaImage cuda_create_image(size_t cols, size_t rows)
 {
-	printf("*** Creating CUDA image of size %lux%lu\n", cols, rows);
+	LOG_INFO("Creating CUDA image of size %lux%lu\n", cols, rows);
 
 	// Calculate parameters needed by CUDA
 	const auto width = (cols * sizeof(uchar));
@@ -26,7 +28,7 @@ CudaImage cuda_create_image(size_t cols, size_t rows)
 	size_t pitch;
 	checkCudaErrors(cudaMallocPitch(&data, &pitch, width, height));
 
-	printf("*** Created CUDA image at 0x%p and pitch %lu\n", data, pitch);
+	LOG_INFO("Created CUDA image at 0x%p and pitch %lu\n", data, pitch);
 
 	// Return created image
 	return CudaImage { data, pitch, cols, rows };
@@ -34,7 +36,7 @@ CudaImage cuda_create_image(size_t cols, size_t rows)
 
 void cuda_free_image(CudaImage& d_img)
 {
-	printf("*** Freeing CUDA image at %p\n", d_img.data);
+	LOG_INFO("Freeing CUDA image at %p\n", d_img.data);
 
 	checkCudaErrors(cudaFree(d_img.data));
 }
@@ -45,7 +47,7 @@ CudaImage cuda_image_clone(const CudaImage& d_src)
 	const auto cols = d_src.cols;
 	const auto rows = d_src.rows;
 
-	printf("*** Cloning CUDA image of size %lux%lu\n", cols, rows);
+	LOG_INFO("Cloning CUDA image of size %lux%lu\n", cols, rows);
 
 	// Allocate image on the device and copy device data
 	auto d_dst = cuda_create_image(cols, rows);
@@ -69,7 +71,7 @@ CudaImage cuda_image_clone_from_host(const HostImage& h_src)
 	const auto cols = (size_t) h_src.cols;
 	const auto rows = (size_t) h_src.rows;
 
-	printf("*** Cloning CUDA image from host of size %lux%lu\n", cols, rows);
+	LOG_INFO("Cloning CUDA image from host of size %lux%lu\n", cols, rows);
 
 	// Allocate image on the device and copy host data
 	auto d_dst = cuda_create_image(cols, rows);
@@ -85,7 +87,7 @@ HostImage cuda_image_clone_to_host(const CudaImage& d_src)
 	const auto cols = d_src.cols;
 	const auto rows = d_src.rows;
 
-	printf("*** Cloning CUDA image to host of size %lux%lu\n", cols, rows);
+	LOG_INFO("Cloning CUDA image to host of size %lux%lu\n", cols, rows);
 
 	// Allocate image on host and copy device data
 	auto h_dst = cuda_create_host_image(cols, rows);
@@ -101,7 +103,7 @@ void cuda_image_copy(CudaImage& d_dst, const CudaImage& d_src)
 	const auto cols = d_dst.cols;
 	const auto rows = d_dst.rows;
 
-	printf("*** Copying CUDA image of size %lux%lu\n", cols, rows);
+	LOG_INFO("Copying CUDA image of size %lux%lu\n", cols, rows);
 
 	// Calculate parameters needed by cuda
 	const auto width = (cols * sizeof(uchar));
@@ -126,7 +128,7 @@ void cuda_image_copy_data_from_host(CudaImage& d_dst, const void* h_src_data)
 	const auto cols = d_dst.cols;
 	const auto rows = d_dst.rows;
 
-	printf("*** Copying CUDA image data from host of size %lux%lu\n", cols, rows);
+	LOG_INFO("Copying CUDA image data from host of size %lux%lu\n", cols, rows);
 
 	// Calculate parameters needed by cuda
 	const auto width = (cols * sizeof(uchar));
@@ -155,7 +157,7 @@ void cuda_image_copy_data_to_host(void* h_dst_data, const CudaImage& d_src)
 	const auto cols = d_src.cols;
 	const auto rows = d_src.rows;
 
-	printf("*** Copying CUDA image data to host of size %lux%lu\n", cols, rows);
+	LOG_INFO("Copying CUDA image data to host of size %lux%lu\n", cols, rows);
 
 	// Calculate parameters needed by cuda
 	const auto width = (cols * sizeof(uchar));
@@ -169,56 +171,3 @@ void cuda_image_copy_data_to_host(void* h_dst_data, const CudaImage& d_src)
 	checkCudaErrors(cudaMemcpy2D(h_dst_data, dpitch, d_src.data, spitch,
 		width, height, cudaMemcpyDeviceToHost));	
 }
-
-// CudaImage::CudaImage(size_t width, size_t height)
-//     :   width(width)
-//     ,   height(height)
-// {
-//     // Allocate memory for 2D image
-//     checkCudaErrors(cudaMallocPitch(&data, &pitch, width, height));
-// }
-
-// CudaImage::~CudaImage()
-// {
-//     if(data)
-//     {
-//         // Free memory of 2D image
-//         checkCudaErrors(cudaFree(data));
-//     }
-// }
-
-// void CudaImage::fill(int value)
-// {
-//     // Fill 2D image with value
-// 	checkCudaErrors(cudaMemset2D(data, pitch, value, width, height));
-// }
-
-// void CudaImage::copy_from_host(const Image& img)
-// {
-//     // Both images must have same size
-//     assert(img.cols == width);
-//     assert(img.rows == height);
-
-//     // Pitch of host image must be zero
-//     assert(img.isContinuous());
-//     const auto img_pitch = 0;
-
-//     // Perform copy of image from host to device
-//     checkCudaErrors(cudaMemcpy2D(data, pitch,
-//         img.data, img_pitch, width, height, cudaMemcpyHostToDevice));
-// }
-
-// void CudaImage::copy_to_host(Image& img)
-// {
-//     // Both images must have same size
-//     assert(img.cols == width);
-//     assert(img.rows == height);
-
-//     // Pitch of host image must be zero
-//     assert(img.isContinuous());
-//     const auto img_pitch = 0;
-
-//     // Perform copy of image from device to host
-//     checkCudaErrors(cudaMemcpy2D(img.data, img_pitch,
-//         data, pitch, width, height, cudaMemcpyDeviceToHost));
-// }

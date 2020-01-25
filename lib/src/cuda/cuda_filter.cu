@@ -12,6 +12,8 @@
 
 #include <helper_cuda.h>
 
+#include "log.hpp"
+
 //Assuming max filter size = 64x64
 
 #define KERNELDIM 5
@@ -113,7 +115,7 @@ CudaImage cuda_filter(const CudaImage& src, CudaKernelSize ksize)
 	const auto cols = src.cols;
 	const auto rows = src.rows;
 
-	printf("*** Convolution filtering with CUDA of image %lux%lu ksize %lu\n", cols, rows, ksize);
+	LOG_INFO("Convolution filtering with CUDA of image %lux%lu ksize %lu\n", cols, rows, ksize);
 
 	// Allocate image on the device
 	auto dst = cuda_create_image(cols, rows);

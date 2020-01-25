@@ -16,6 +16,7 @@
 #include "cuda_hist.cuh"
 #include "cuda_image.cuh"
 #include "cuda_median.cuh"
+#include "log.hpp"
 
 //
 // Private functions
@@ -23,21 +24,21 @@
 
 static void cuda_set_device(int device)
 {
-	printf("*** Setting CUDA device no. %d\n", device);
+	LOG_INFO("Setting CUDA device no. %d\n", device);
 
     checkCudaErrors(cudaSetDevice(device));
 }
 
 static void cuda_reset_device()
 {
-	printf("*** Resetting current CUDA device\n");
+	LOG_INFO("Resetting current CUDA device\n");
 
 	checkCudaErrors(cudaDeviceReset());
 }
 
 static HostImage cuda_process_host_image(const HostImage& h_src, const ProcessConfig& config)
 {
-	printf("*** Processing host image with CUDA\n");
+	LOG_INFO("Processing host image with CUDA\n");
 
 	auto d_src = cuda_image_clone_from_host(h_src);
 	auto d_medianed = cuda_median(d_src, config.median_ksize);
@@ -59,7 +60,7 @@ static HostImage cuda_process_host_image(const HostImage& h_src, const ProcessCo
 
 void cuda_proc_init()
 {
-	printf("*** Initializing CUDA proc module\n");
+	LOG_INFO("Initializing CUDA proc module\n");
 
 	// Initialize device
 	cuda_set_device(0);
@@ -70,7 +71,7 @@ void cuda_proc_init()
 
 void cuda_proc_deinit()
 {
-	printf("*** Deinitializing CUDA proc module\n");
+	LOG_INFO("Deinitializing CUDA proc module\n");
 
 	// Deinitialize modules
 	cuda_hist_deinit();

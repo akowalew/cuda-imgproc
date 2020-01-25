@@ -12,9 +12,11 @@
 
 #include <helper_cuda.h>
 
+#include "log.hpp"
+
 CudaKernel cuda_create_kernel(CudaKernelSize ksize)
 {
-    printf("*** Creating CUDA kernel of size %lux%lu\n", ksize, ksize);
+    LOG_INFO("Creating CUDA kernel of size %lux%lu\n", ksize, ksize);
 
     // Get size of the buffer for kernel
     const auto size = (ksize * ksize * sizeof(CudaKernelType));

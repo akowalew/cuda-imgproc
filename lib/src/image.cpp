@@ -6,9 +6,11 @@
 
 #include "image.hpp"
 
+#include "log.hpp"
+
 Image create_image(size_t cols, size_t rows)
 {
-	printf("*** Creating image of size %lux%lu\n", cols, rows);
+	LOG_INFO("Creating image of size %lux%lu\n", cols, rows);
 
 	return cv::Mat(rows, cols, CV_8UC1);
 }

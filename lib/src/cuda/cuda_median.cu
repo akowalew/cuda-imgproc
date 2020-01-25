@@ -12,9 +12,11 @@
 
 #include <helper_cuda.h>
 
+#include "log.hpp"
+
 CudaImage cuda_median(const CudaImage& src, CudaMedianKernelSize ksize)
 {
-	printf("*** Median filtering with CUDA\n");
+	LOG_INFO("Median filtering with CUDA\n");
 
 	return cuda_image_clone(src);
 }
