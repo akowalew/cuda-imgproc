@@ -47,11 +47,15 @@ int main(int argc, char** argv)
         proc_init();
 
         // Do app logic
-        const auto src = read_image(src_path);
-        const auto dst = process_image(src, process_config);
+        auto src = read_image(src_path);
+        auto dst = process_image(src, process_config);
         write_image(dst, dst_path);
 
         wait_for_exit();
+
+        // Free memory
+        free_image(dst);
+        free_image(src);
 
         // Deinitialize app
         proc_deinit();
