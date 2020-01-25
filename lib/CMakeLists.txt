@@ -77,9 +77,9 @@ target_compile_options(imgproc
 if(BUILD_BENCHMARKING)
     list(APPEND imgproc-bench_SOURCES
         bench/bench_main.cpp
-        bench/filter_bench.cpp
-        bench/hist_bench.cpp
-        bench/median_bench.cpp
+        bench/cuda/cuda_filter_bench.cu
+        bench/cuda/cuda_hist_bench.cu
+        bench/cuda/cuda_median_bench.cu
     )
 
     add_executable(imgproc-bench
@@ -89,11 +89,15 @@ if(BUILD_BENCHMARKING)
     target_link_libraries(imgproc-bench
         PRIVATE
             imgproc
-            -fopenmp
 
             ${benchmark_LIBRARIES}
             benchmark
             pthread
+    )
+
+    target_include_directories(imgproc-bench
+        PRIVATE
+            $<TARGET_PROPERTY:imgproc,INCLUDE_DIRECTORIES>
     )
 
     if(GNU)
