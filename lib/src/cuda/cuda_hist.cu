@@ -65,6 +65,29 @@ void cuda_free_histogram(CudaHistogram& hist)
 	checkCudaErrors(cudaFree(hist.data));
 }
 
+__device__
+uint cuda_calculate_cdf(uint* cdf, const uint* hist)
+{
+    uint acc = 0;
+    uint cdf_min = 0;
+    for(auto i = 0; i < 256; ++i)
+    {
+    	// Accumulate next histogram element and store next CDF value
+    	const auto hist_v = hist[i];
+        acc += hist_v;
+        cdf[i] = acc;
+        
+    	if(cdf_min == 0)
+    	{
+    		// Assign current histogram value. Maybe it will be not zero
+    		//  and we will gain a first CDF non-zero value (minimal) 
+    		cdf_min = hist_v;
+    	}
+    }	
+
+    return cdf_min;
+}
+
 __global__
 void cuda_gen_equalize_lut(uchar* lut, const uint* hist)
 {
@@ -81,22 +104,8 @@ void cuda_gen_equalize_lut(uchar* lut, const uint* hist)
 	// Calculate CDF values and find minimal one
 	// Note that every thread calculates whole CDF.
 	// Though this process is truly sequential, there is no need to do it by
-	//  one thread, because this way we will need then  __syncthreads, which costs.
-    uint cdf_min;
-    uint acc = 0;
-    for(auto i = 0; i < 256; ++i)
-    {
-    	const auto hist_v = hist[i];
-    	if(acc == 0 && hist_v != 0)
-    	{
-    		// We've got minimal CDF value
-    		cdf_min = hist_v;
-    	}
-
-    	// Accumulate next histogram element and store next CDF value
-        acc += hist_v;
-        s_cdf[i] = acc;
-    }
+	//  one thread, because this way we will need  __syncthreads, which has cost.
+	const auto cdf_min = cuda_calculate_cdf(s_cdf, hist);
 
     // Calculate LUT value and store it
     lut[threadIdx.x] = 
