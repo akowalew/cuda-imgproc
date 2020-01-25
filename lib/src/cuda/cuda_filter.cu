@@ -96,7 +96,15 @@ __host__ void filter(const Image& src, Image& dst, const Image& kernel, int offs
 
 void cuda_filter(CudaImage& dst, const CudaImage& src, CudaKernelSize ksize)
 {
+    // Ensure proper shapes of images
+    assert(dst.cols == src.cols);
+    assert(dst.rows == src.rows);
+    
+    auto kernel = cuda_create_mean_blurr_kernel(ksize);
 
+    cuda_image_copy(dst, src);
+
+    cuda_free_kernel(kernel);
 }
 
 CudaImage cuda_filter(const CudaImage& src, CudaKernelSize ksize)
