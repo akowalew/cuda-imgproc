@@ -48,7 +48,7 @@ void cuda_apply_lut(
     const auto x = (threadIdx.x + blockDim.x*blockIdx.x);
 
     // If we are out of bounds, do nothing
-    if(y > rows || x > cols)
+    if(y >= rows || x >= cols)
     {
         return;
     }

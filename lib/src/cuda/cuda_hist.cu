@@ -161,7 +161,7 @@ void cuda_calculate_hist(
 	// Get position of that thread in terms of image
 	const auto y = (blockIdx.y*blockDim.y + threadIdx.y);
 	const auto x = (blockIdx.x*blockDim.x + threadIdx.x);
-	if(y > rows || x > cols)
+	if(y >= rows || x >= cols)
 	{
 		// We are out of bounds, do nothing
 		return;
