@@ -13,6 +13,8 @@
 
 #include <helper_cuda.h>
 
+#include "log.hpp"
+
 //
 // Private definitions
 //
@@ -30,7 +32,7 @@ static CudaLUT g_eq_lut;
 
 void cuda_hist_init()
 {
-	printf("*** Initializing CUDA hist module\n");
+	LOG_INFO("Initializing CUDA hist module\n");
 
 	g_eq_hist = cuda_create_histogram();
 	g_eq_lut = cuda_create_lut();
@@ -38,7 +40,7 @@ void cuda_hist_init()
 
 void cuda_hist_deinit()
 {
-	printf("*** Deinitializing CUDA hist module\n");
+	LOG_INFO("Deinitializing CUDA hist module\n");
 
 	cuda_free_lut(g_eq_lut);
 	cuda_free_histogram(g_eq_hist);
@@ -63,64 +65,49 @@ void cuda_free_histogram(CudaHistogram& hist)
 	checkCudaErrors(cudaFree(hist.data));
 }
 
-__device__
-uint cuda_calc_cdf(const uint* hist, uint* cdf)
-{
-    uint cdf_min;
-    uint acc = 0;
-
-    // Iterate over whole histogram sn
-    for(auto i = 0; i < 256; ++i)
-    {
-    	// Get next histogram element
-        const auto hist_v = hist[i];
-        if(hist_v != 0 && acc == 0)
-        {
-        	// If this is first non-zero CDF value, store it
-            cdf_min = hist_v;
-        }
-
-        // Increase histogram accumulator and use it as next CDF value
-        acc += hist_v;
-        cdf[i] = acc;
-    }
-
-    return cdf_min;
-}
-
 __global__
 void cuda_gen_equalize_lut(uchar* lut, const uint* hist)
 {
-    // We will need shared memory buffer for CDF values and its minimal one
+	// Generating of equalizing LUT consists of three steps:
+	//  1) Calculating CDF (continuous distribution function) of histogram
+	//  2) Finding first, non-zero value of that CDF
+	//  3) Calculating final LUT
+	// In order to optimize the runtime, all of the code is placed in one function
+
+    // We will need some temporary buffer for CDF values
+    // Shared memory will be used, because it is too big for local memory
 	__shared__ uint s_cdf[256];
-	__shared__ uint s_cdf_min;
 
-	if(threadIdx.x == 0)
-	{
-		// CDF calculation is truly sequential, so only first thread may do it.
-		// Calculate CDF for given histogram and get its first non-zero value
-		s_cdf_min = cuda_calc_cdf(hist, s_cdf);
-	}
+	// Calculate CDF values and find minimal one
+	// Note that every thread calculates whole CDF.
+	// Though this process is truly sequential, there is no need to do it by
+	//  one thread, because this way we will need then  __syncthreads, which costs.
+    uint cdf_min;
+    uint acc = 0;
+    for(auto i = 0; i < 256; ++i)
+    {
+    	const auto hist_v = hist[i];
+    	if(acc == 0 && hist_v != 0)
+    	{
+    		// We've got minimal CDF value
+    		cdf_min = hist_v;
+    	}
 
-	// Wait for thread #0 to complete CDF calculation
-	__syncthreads();
-
-	// Obtain value of CDF for that thread
-    const auto cdf_v = s_cdf[threadIdx.x];
-
-    // Get the difference between that CDF value and minimal one
-    const auto cdf_diff = (cdf_v - s_cdf_min);
-
-	// Obtain number of pixels in the image from the last CDF element
-    const auto elems = s_cdf[255];
+    	// Accumulate next histogram element and store next CDF value
+        acc += hist_v;
+        s_cdf[i] = acc;
+    }
 
     // Calculate LUT value and store it
-    const auto lut_v = ((cdf_diff * 255) / (elems - s_cdf_min));
-    lut[threadIdx.x] = lut_v;
+    lut[threadIdx.x] = 
+    	(((s_cdf[threadIdx.x] - cdf_min) * 255) 
+    		/ (s_cdf[255] - cdf_min));
 }
 
-void cuda_gen_equalize_lut(CudaLUT& lut, const CudaHistogram& hist)
+void cuda_gen_equalize_lut_async(CudaLUT& lut, const CudaHistogram& hist)
 {
+	LOG_INFO("Generating equalizing LUT with CUDA\n");
+
 	// Use only one, linear, const sized block
 	const auto dim_block = dim3(LUTSize);
 	const auto dim_grid = 1;
@@ -130,6 +117,12 @@ void cuda_gen_equalize_lut(CudaLUT& lut, const CudaHistogram& hist)
 
 	// Check if launch succeeded
 	checkCudaErrors(cudaGetLastError());
+}
+
+void cuda_gen_equalize_lut(CudaLUT& lut, const CudaHistogram& hist)
+{
+	// Launch generation of equalize LUT
+	cuda_gen_equalize_lut_async(lut, hist);
 
 	// Wait for device finish
 	checkCudaErrors(cudaDeviceSynchronize());
@@ -180,13 +173,13 @@ void cuda_calculate_hist(
 	}
 }
 
-void cuda_calculate_hist(CudaHistogram& hist, const CudaImage& img)
+void cuda_calculate_hist_async(CudaHistogram& hist, const CudaImage& img)
 {
 	// Retrieve device image shape
 	const auto cols = img.cols;
 	const auto rows = img.rows;
 
-	printf("*** Calculating histogram with CUDA of image %lux%lu\n", cols, rows);
+	LOG_INFO("Calculating histogram with CUDA of image %lux%lu\n", cols, rows);
 
 	// Use const sized blocks
 	const auto dim_block = dim3(K, K);
@@ -196,6 +189,8 @@ void cuda_calculate_hist(CudaHistogram& hist, const CudaImage& img)
 	const auto dim_grid_y = ((rows+K-1) / K);
 	const auto dim_grid = dim3(dim_grid_x, dim_grid_y);
 
+	LOG_DEBUG("cuda_calculate_hist_async: dim_grid = (%lu,%lu)\n", dim_grid_x, dim_grid_y);
+
 	// Launch histogram calculation
 	cuda_calculate_hist<<<dim_grid, dim_block>>>(
 		hist.data,
@@ -204,6 +199,12 @@ void cuda_calculate_hist(CudaHistogram& hist, const CudaImage& img)
 
 	// Check if launch succeeded
 	checkCudaErrors(cudaGetLastError());
+}
+
+void cuda_calculate_hist(CudaHistogram& hist, const CudaImage& img)
+{
+	// Launch histogram calculation
+	cuda_calculate_hist_async(hist, img);
 	
 	// Wait for device finish
 	checkCudaErrors(cudaDeviceSynchronize());
@@ -221,20 +222,30 @@ CudaHistogram cuda_calculate_hist(const CudaImage& img)
 	return hist;
 }
 
-void cuda_equalize_hist(CudaImage& dst, const CudaImage& src)
+void cuda_equalize_hist_async(CudaImage& dst, const CudaImage& src)
 {
 	// Ensure proper images sizes
 	assert(src.cols == dst.cols);
 	assert(src.rows == dst.rows);
 
-	cuda_calculate_hist(g_eq_hist, src);
-	cuda_gen_equalize_lut(g_eq_lut, g_eq_hist);
-	cuda_apply_lut(dst, src, g_eq_lut);
+	// Launch histogram equalization sequence
+	cuda_calculate_hist_async(g_eq_hist, src);
+	cuda_gen_equalize_lut_async(g_eq_lut, g_eq_hist);
+	cuda_apply_lut_async(dst, src, g_eq_lut);
+}
+
+void cuda_equalize_hist(CudaImage& dst, const CudaImage& src)
+{
+	// Launch histogram equalization
+	cuda_equalize_hist_async(dst, src);
+
+	// Wait for device to finish
+	checkCudaErrors(cudaDeviceSynchronize());
 }
 
 CudaImage cuda_equalize_hist(const CudaImage& src)
 {
-	printf("*** Equalizing histogram with CUDA\n");
+	LOG_INFO("Equalizing histogram with CUDA\n");
 
 	// Allocate image on device
 	auto dst = cuda_create_image(src.cols, src.rows);
