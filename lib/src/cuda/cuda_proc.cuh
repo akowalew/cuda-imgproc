@@ -24,9 +24,11 @@ void cuda_proc_deinit();
 /**
  * @brief Processes the image according to specified configuration
  * @details Image is processed in following steps:
+ * 	0) Provided image is copied to the device
  *  1) Median filtration
  *  2) Convolution filtration
  *  3) Histogram equalization
+ *  4) Image is copied back to host
  * 
  * @param img image to process
  * @param config processing configuration
