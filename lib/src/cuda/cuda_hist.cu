@@ -48,12 +48,9 @@ void cuda_hist_deinit()
 
 CudaHistogram cuda_create_histogram()
 {
-	// Get buffer size for histogram
-	const auto size = (CudaHistogram::Size * sizeof(CudaHistogram::Type));
-
 	// Allocate histogram on the device
 	void* data;
-	checkCudaErrors(cudaMalloc(&data, size));
+	checkCudaErrors(cudaMalloc(&data, CudaHistogram::BufferSize));
 
 	// Return created histogram
 	return CudaHistogram { (CudaHistogram::Type*)data };
@@ -67,11 +64,8 @@ void cuda_free_histogram(CudaHistogram& hist)
 
 void cuda_histogram_zero_async(CudaHistogram& hist)
 {
-	// Get buffer size for histogram
-	const auto size = (CudaHistogram::Size * sizeof(CudaHistogram::Type));
-
 	// Fill asynchronously histogram with 0
-	checkCudaErrors(cudaMemset(hist.data, 0, size));
+	checkCudaErrors(cudaMemset(hist.data, 0, CudaHistogram::BufferSize));
 }
 
 __device__

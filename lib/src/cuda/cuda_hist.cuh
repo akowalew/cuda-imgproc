@@ -15,9 +15,11 @@
 
 struct CudaHistogram
 {
+	using Type = uint;
+
 	constexpr static size_t Size = 256;
 
-	using Type = uint;
+	constexpr static size_t BufferSize = (Size * sizeof(Type));
 
 	Type* data;
 };
