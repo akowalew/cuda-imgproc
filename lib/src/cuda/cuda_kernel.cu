@@ -14,19 +14,19 @@
 
 #include "log.hpp"
 
-CudaKernel cuda_create_kernel(CudaKernelSize ksize)
+CudaKernel cuda_create_kernel(size_t ksize)
 {
     LOG_INFO("Creating CUDA kernel of size %lux%lu\n", ksize, ksize);
 
     // Get size of the buffer for kernel
-    const auto size = (ksize * ksize * sizeof(CudaKernelType));
+    const auto size = (ksize * ksize * sizeof(CudaKernel::Type));
 
     // Allocate kernel on the device
     void* data;
     checkCudaErrors(cudaMalloc(&data, size));
 
     // Return created kernel
-    return CudaKernel { (CudaKernelType*)data, ksize };
+    return CudaKernel { (CudaKernel::Type*)data, ksize };
 }
 
 void cuda_free_kernel(CudaKernel& kernel)
@@ -35,18 +35,18 @@ void cuda_free_kernel(CudaKernel& kernel)
     checkCudaErrors(cudaFree(kernel.data));
 }
 
-void cuda_kernel_fill(CudaKernel& kernel, CudaKernelType value)
+void cuda_kernel_fill(CudaKernel& kernel, CudaKernel::Type value)
 {
     const auto ksize = kernel.ksize;
-    const auto count = (ksize * ksize * sizeof(CudaKernelType));
+    const auto count = (ksize * ksize * sizeof(CudaKernel::Type));
 
-    static_assert(sizeof(int) == sizeof(CudaKernelType), 
+    static_assert(sizeof(int) == sizeof(CudaKernel::Type), 
         "cudaMemset API accepts only int sized variable");
 
     checkCudaErrors(cudaMemset(kernel.data, value, count));
 }
 
-CudaKernel cuda_create_mean_blurr_kernel(CudaKernelSize ksize)
+CudaKernel cuda_create_mean_blurr_kernel(size_t ksize)
 {
     auto kernel = cuda_create_kernel(ksize);
 
