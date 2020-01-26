@@ -175,7 +175,7 @@ CudaLUT cuda_gen_equalize_lut(const CudaHistogram& hist)
 }
 
 __global__
-void cuda_calculate_hist(
+void cuda_calculate_hist_kernel(
 	uint* hist,
 	const uchar* img, size_t pitch,
 	size_t cols, size_t rows)
@@ -236,7 +236,7 @@ void cuda_calculate_hist_async(CudaHistogram& hist, const CudaImage& img)
 
 	// Launch histogram calculation
 	cuda_histogram_fill_async(hist, 0);
-	cuda_calculate_hist<<<dim_grid, dim_block>>>(
+	cuda_calculate_hist_kernel<<<dim_grid, dim_block>>>(
 		hist.data,
 		(uchar*)img.data, img.pitch,
 		cols, rows);
