@@ -8,8 +8,8 @@
 
 #include "image.hpp"
 
-using HostImage = Image;
+using CudaHostImage = Image;
 
-HostImage cuda_create_host_image(size_t cols, size_t rows);
+CudaHostImage cuda_create_host_image(size_t cols, size_t rows);
 
-void cuda_free_host_image(HostImage& h_img);
+void cuda_free_host_image(CudaHostImage& h_img);

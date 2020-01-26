@@ -57,7 +57,7 @@ CudaImage cuda_image_clone(const CudaImage& d_src)
 	return d_dst;
 }
 
-CudaImage cuda_image_clone_from_host(const HostImage& h_src)
+CudaImage cuda_image_clone_from_host(const CudaHostImage& h_src)
 {
 	// Validate host image shape
 	assert(h_src.cols > 0);
@@ -81,7 +81,7 @@ CudaImage cuda_image_clone_from_host(const HostImage& h_src)
 	return d_dst;
 }
 
-HostImage cuda_image_clone_to_host(const CudaImage& d_src)
+CudaHostImage cuda_image_clone_to_host(const CudaImage& d_src)
 {
 	// Retrieve device image shape
 	const auto cols = d_src.cols;
@@ -114,7 +114,7 @@ void cuda_image_copy(CudaImage& d_dst, const CudaImage& d_src)
 		d_src.data, d_src.pitch, width, height, cudaMemcpyDeviceToDevice));
 }
 
-void cuda_image_copy_from_host(CudaImage& d_dst, const HostImage& h_src)
+void cuda_image_copy_from_host(CudaImage& d_dst, const CudaHostImage& h_src)
 {
 	// Ensure proper images sizes
 	assert(d_dst.cols == h_src.cols);
@@ -143,7 +143,7 @@ void cuda_image_copy_data_from_host(CudaImage& d_dst, const void* h_src_data)
 		width, height, cudaMemcpyHostToDevice));
 }
 
-void cuda_image_copy_to_host(HostImage& h_dst, const CudaImage& d_src)
+void cuda_image_copy_to_host(CudaHostImage& h_dst, const CudaImage& d_src)
 {
 	// Ensure proper images sizes
 	assert(h_dst.cols == d_src.cols);
@@ -170,4 +170,13 @@ void cuda_image_copy_data_to_host(void* h_dst_data, const CudaImage& d_src)
 	// Perform data copy to host
 	checkCudaErrors(cudaMemcpy2D(h_dst_data, dpitch, d_src.data, spitch,
 		width, height, cudaMemcpyDeviceToHost));	
+}
+
+void cuda_image_fill_async(CudaImage& img, uchar value)
+{
+	const auto width = (img.cols * sizeof(uchar));
+	const auto height = img.rows;
+
+	// Fill image asynchronously with given value
+	checkCudaErrors(cudaMemset2D(img.data, img.pitch, value, width, height));
 }

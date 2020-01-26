@@ -36,7 +36,7 @@ static void cuda_reset_device()
 	checkCudaErrors(cudaDeviceReset());
 }
 
-static HostImage cuda_process_host_image(const HostImage& h_src, const ProcessConfig& config)
+static CudaHostImage cuda_process_host_image(const CudaHostImage& h_src, const ProcessConfig& config)
 {
 	LOG_INFO("Processing host image with CUDA\n");
 
