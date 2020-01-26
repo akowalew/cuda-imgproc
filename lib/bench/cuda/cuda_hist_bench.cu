@@ -6,51 +6,10 @@
 
 #include <benchmark/benchmark.h>
 
-#include <cuda_runtime.h>
-
-#include <helper_cuda.h>
-
 #include "cuda_proc.cuh"
 #include "cuda_hist.cuh"
 
-template<typename TFunc>
-void cuda_benchmark(benchmark::State& state, TFunc&& func)
-{
-    cudaEvent_t start;
-    cudaEvent_t stop;
-
-    checkCudaErrors(cudaEventCreate(&start));
-    checkCudaErrors(cudaEventCreate(&stop));
-
-    float time_ms;
-
-    for(auto _ : state)
-    {
-        checkCudaErrors(cudaEventRecord(start));
-
-        func();
-
-        checkCudaErrors(cudaEventRecord(stop));
-        checkCudaErrors(cudaEventSynchronize(stop));
-        checkCudaErrors(cudaEventElapsedTime(&time_ms, start, stop));
-        checkCudaErrors(cudaDeviceSynchronize());
-
-        state.SetIterationTime(time_ms / 1000.0f);
-    }  
-
-    checkCudaErrors(cudaEventDestroy(stop));
-    checkCudaErrors(cudaEventDestroy(start));
-}
-
-void get_resolutions(benchmark::internal::Benchmark* b)
-{
-    b->Args({320, 240}); 
-    b->Args({640, 480});
-    b->Args({1024, 768});
-    b->Args({1920, 1080});
-    b->Args({2560, 1440});
-    b->Args({3840, 2160});
-}
+#include "cuda_bench_common.cuh"
 
 //! Performs benchmarking of equalize_hist function
 static void equalize_hist(benchmark::State& state)

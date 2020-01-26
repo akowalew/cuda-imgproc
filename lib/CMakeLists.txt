@@ -99,6 +99,8 @@ if(BUILD_BENCHMARKING)
     target_include_directories(imgproc-bench
         PRIVATE
             $<TARGET_PROPERTY:imgproc,INCLUDE_DIRECTORIES>
+            bench/cuda
+            bench
     )
 
     if(GNU)
