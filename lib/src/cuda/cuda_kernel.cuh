@@ -11,7 +11,7 @@ struct CudaKernel
 	using Type = float;
 
 	Type* data;
-	size_t ksize;
+	size_t size;
 };
 
 CudaKernel cuda_create_kernel(size_t ksize);

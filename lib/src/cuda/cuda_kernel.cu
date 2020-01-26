@@ -37,11 +37,8 @@ void cuda_free_kernel(CudaKernel& kernel)
 
 void cuda_kernel_fill(CudaKernel& kernel, CudaKernel::Type value)
 {
-    const auto ksize = kernel.ksize;
+    const auto ksize = kernel.size;
     const auto count = (ksize * ksize * sizeof(CudaKernel::Type));
-
-    static_assert(sizeof(int) == sizeof(CudaKernel::Type), 
-        "cudaMemset API accepts only int sized variable");
 
     checkCudaErrors(cudaMemset(kernel.data, value, count));
 }
