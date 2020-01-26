@@ -196,15 +196,14 @@ void cuda_calculate_hist_kernel(
 	// Get position of that thread in terms of image
 	const auto y = (blockIdx.y*blockDim.y + threadIdx.y);
 	const auto x = (blockIdx.x*blockDim.x + threadIdx.x);
-	if(y >= rows || x >= cols)
-	{
-		// We are out of bounds, do nothing
-		return;
-	}
 
-	// Increment local counter of that thread's pixel value atomically
-	const auto val = img[y*pitch + x];
-	atomicAdd(&s_hist[val], 1);
+	// Check, if we are in image bounds
+	if(y < rows && x < cols)
+	{
+		// Increment local counter of that thread's pixel value atomically
+		const auto val = img[y*pitch + x];
+		atomicAdd(&s_hist[val], 1);
+	}
 
 	// Wait for all threads to finish
 	__syncthreads();
