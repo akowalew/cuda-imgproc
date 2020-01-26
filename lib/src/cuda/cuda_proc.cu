@@ -15,6 +15,7 @@
 #include "cuda_filter.cuh"
 #include "cuda_hist.cuh"
 #include "cuda_image.cuh"
+#include "cuda_kernel.cuh"
 #include "cuda_median.cuh"
 #include "log.hpp"
 
@@ -41,13 +42,17 @@ static CudaHostImage cuda_process_host_image(const CudaHostImage& h_src, const P
 	LOG_INFO("Processing host image with CUDA\n");
 
 	auto d_src = cuda_image_clone_from_host(h_src);
+	auto d_kernel = cuda_create_mean_blurr_kernel(config.filter_ksize);
+
 	auto d_medianed = cuda_median(d_src, config.median_ksize);
-	auto d_filtered = cuda_filter(d_medianed, config.filter_ksize);
+	auto d_filtered = cuda_filter(d_medianed, d_kernel);
 	auto d_equalized = cuda_equalize_hist(d_filtered);
+	
 	auto h_dst = cuda_image_clone_to_host(d_equalized);
 
 	cuda_free_image(d_equalized);
 	cuda_free_image(d_filtered);
+	cuda_free_kernel(d_kernel);
 	cuda_free_image(d_medianed);
 	cuda_free_image(d_src);
 
