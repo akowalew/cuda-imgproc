@@ -68,6 +68,11 @@ void cuda_histogram_fill_async(CudaHistogram& hist, CudaHistogram::Type value)
 	checkCudaErrors(cudaMemset(hist.data, value, CudaHistogram::BufferSize));
 }
 
+void cuda_histogram_copy_data_to_host(CudaHistogram::Type* h_data, CudaHistogram& d_hist)
+{
+	checkCudaErrors(cudaMemcpy(h_data, d_hist.data, CudaHistogram::BufferSize, cudaMemcpyDeviceToHost));
+}
+
 __device__
 uint cuda_calculate_cdf_in_place(uint* buf)
 {

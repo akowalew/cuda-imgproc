@@ -37,6 +37,9 @@ void cuda_free_histogram(CudaHistogram& hist);
 void cuda_histogram_fill_async(CudaHistogram& hist, CudaHistogram::Type value);
 
 
+void cuda_histogram_copy_data_to_host(CudaHistogram::Type* h_data, CudaHistogram& d_hist);
+
+
 void cuda_calculate_hist_async(CudaHistogram& hist, const CudaImage& img);
 
 void cuda_calculate_hist(CudaHistogram& hist, const CudaImage& img);
