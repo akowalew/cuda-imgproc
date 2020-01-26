@@ -62,10 +62,10 @@ void cuda_free_histogram(CudaHistogram& hist)
 	checkCudaErrors(cudaFree(hist.data));
 }
 
-void cuda_histogram_zero_async(CudaHistogram& hist)
+void cuda_histogram_fill_async(CudaHistogram& hist, CudaHistogram::Type value)
 {
-	// Fill asynchronously histogram with 0
-	checkCudaErrors(cudaMemset(hist.data, 0, CudaHistogram::BufferSize));
+	// Fill asynchronously histogram with value
+	checkCudaErrors(cudaMemset(hist.data, value, CudaHistogram::BufferSize));
 }
 
 __device__
@@ -254,7 +254,7 @@ CudaHistogram cuda_calculate_hist(const CudaImage& img)
 	auto hist = cuda_create_histogram();
 
 	// Initialize created histogram to zero and calculate it from image
-	cuda_histogram_zero_async(hist);
+	cuda_histogram_fill_async(hist, 0);
 	cuda_calculate_hist(hist, img);
 
 	// Return calculated histogram
@@ -268,7 +268,7 @@ void cuda_equalize_hist_async(CudaImage& dst, const CudaImage& src)
 	assert(src.rows == dst.rows);
 
 	// Launch histogram equalization sequence
-	cuda_histogram_zero_async(g_eq_hist);
+	cuda_histogram_fill_async(g_eq_hist, 0);
 	cuda_calculate_hist_async(g_eq_hist, src);
 	cuda_gen_equalize_lut_async(g_eq_lut, g_eq_hist);
 	cuda_apply_lut_async(dst, src, g_eq_lut);
