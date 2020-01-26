@@ -107,8 +107,11 @@ static void gen_equalize_lut(benchmark::State& state)
     auto lut = cuda_create_lut();
     auto hist = cuda_create_histogram();
 
-    cuda_benchmark(state, [&lut, &hist] {
-        cuda_gen_equalize_lut_async(lut, hist);
+    // Sample number of elements - image size doesn't matter
+    const auto nelems = (1920 * 1080);
+
+    cuda_benchmark(state, [&lut, &hist, nelems] {
+        cuda_gen_equalize_lut_async(lut, hist, nelems);
     });
 
     cuda_free_histogram(hist);
@@ -119,37 +122,3 @@ static void gen_equalize_lut(benchmark::State& state)
 BENCHMARK(gen_equalize_lut)
     ->UseRealTime()
     ->UseManualTime();
-
-// //! Performs benchmarking of calculate_hist
-// static void calculate_hist(benchmark::State& state, size_t cols, size_t rows)
-// {
-//     // init();
-
-//     // CudaCDF::Counter* cdf_min;
-
-//     // // Create CUDA device variables
-//     // auto image = CudaImage(cols, rows);
-//     // auto histogram = CudaHistogram();
-//     // auto lut = CudaLUT();
-//     // checkCudaErrors(cudaMalloc(&cdf_min, sizeof(CudaCDF::Counter)));
-
-//     // checkCudaErrors(cudaDeviceSynchronize());
-
-//     // // Perform benchmark
-//     // for(auto _ : state)
-//     // {
-//     //     // Do histogram equalization
-//     //     equalize_hist(image, histogram, histogram, cdf_min, lut, image);
-
-//     //     // Wait for all async operations to be done
-//     //     checkCudaErrors(cudaDeviceSynchronize());
-//     // }
-
-//     // // Release CUDA device variables
-//     // checkCudaErrors(cudaFree(cdf_min));
-
-//     // deinit();
-// }
-
-// BENCHMARK_CAPTURE(calculate_hist, 320x240, 320, 240)
-//     ->UseRealTime();
