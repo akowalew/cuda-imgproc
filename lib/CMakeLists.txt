@@ -79,6 +79,7 @@ if(BUILD_BENCHMARKING)
         bench/bench_main.cpp
         bench/cuda/cuda_filter_bench.cu
         bench/cuda/cuda_hist_bench.cu
+        bench/cuda/cuda_lut_bench.cu
         bench/cuda/cuda_median_bench.cu
     )
 
