@@ -119,6 +119,12 @@ endif()
 if(BUILD_TESTING)
     add_executable(imgproc-test
 	    test/test_main.cpp
+        test/cuda_lut_test.cu
+    )
+
+    target_include_directories(imgproc-test
+        PRIVATE
+            $<TARGET_PROPERTY:imgproc,INCLUDE_DIRECTORIES>
     )
 
     target_link_libraries(imgproc-test
