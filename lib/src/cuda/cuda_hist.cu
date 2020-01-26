@@ -49,7 +49,7 @@ void cuda_hist_deinit()
 CudaHistogram cuda_create_histogram()
 {
 	// Get buffer size for histogram
-	const auto size = (HistogramSize * sizeof(CudaHistogram::Type));
+	const auto size = (CudaHistogram::Size * sizeof(CudaHistogram::Type));
 
 	// Allocate histogram on the device
 	void* data;
@@ -68,7 +68,7 @@ void cuda_free_histogram(CudaHistogram& hist)
 void cuda_histogram_zero_async(CudaHistogram& hist)
 {
 	// Get buffer size for histogram
-	const auto size = (HistogramSize * sizeof(CudaHistogram::Type));
+	const auto size = (CudaHistogram::Size * sizeof(CudaHistogram::Type));
 
 	// Fill asynchronously histogram with 0
 	checkCudaErrors(cudaMemset(hist.data, 0, size));
@@ -81,7 +81,7 @@ uint cuda_calculate_cdf_in_place(uint* buf)
 	uint cdf_min = 0;
 
 	// We've got first CDF value, so we're starting directly from the second
-    for(auto i = 1; i < HistogramSize; ++i)
+    for(auto i = 1; i < CudaHistogram::Size; ++i)
     {
     	// Calculate next CDF value
         buf[i] += buf[i-1];
@@ -108,7 +108,7 @@ void cuda_gen_equalize_lut(uchar* lut, const uint* hist)
 
     // We will need some temporary buffer for CDF values and CDF min
     // We will use same buffer both for CDF and for histogram caching
-	__shared__ uint s_buf[HistogramSize];
+	__shared__ uint s_buf[CudaHistogram::Size];
     __shared__ uint s_cdf_min;
 
     // Cache histogram values into shared memory
@@ -129,11 +129,11 @@ void cuda_gen_equalize_lut(uchar* lut, const uint* hist)
 
     // Calculate LUT value and store it
     // where: 
-    //  - (HistogramSize-1) is both maximum value of image and index of last CDF value
-    //  - s_buf[HistogramSize-1] is last CDF value -> number of elements in the image
+    //  - (CudaHistogram::Size-1) is both maximum value of image and index of last CDF value
+    //  - s_buf[CudaHistogram::Size-1] is last CDF value -> number of elements in the image
     lut[threadIdx.x] = 
-    	(((s_buf[threadIdx.x] - s_cdf_min) * (HistogramSize-1)) 
-    		/ (s_buf[HistogramSize-1] - s_cdf_min));
+    	(((s_buf[threadIdx.x] - s_cdf_min) * (CudaHistogram::Size-1)) 
+    		/ (s_buf[CudaHistogram::Size-1] - s_cdf_min));
 }
 
 void cuda_gen_equalize_lut_async(CudaLUT& lut, const CudaHistogram& hist)
@@ -179,11 +179,11 @@ void cuda_calculate_hist(
 	size_t cols, size_t rows)
 {
 	// Allocate shared memory buffer for block-wise partial histograms
-	__shared__ uint s_hist[HistogramSize];
+	__shared__ uint s_hist[CudaHistogram::Size];
 
 	// Initialize local histogram with zeros
 	const auto tid = (threadIdx.y*blockDim.x + threadIdx.x);
-	if(tid < HistogramSize)
+	if(tid < CudaHistogram::Size)
 	{
 		s_hist[tid] = 0;
 	}
@@ -208,7 +208,7 @@ void cuda_calculate_hist(
 	__syncthreads();
 
 	// Add local histogram to the global one atomically
-	if(tid < HistogramSize)
+	if(tid < CudaHistogram::Size)
 	{
 		atomicAdd(&hist[tid], s_hist[tid]);
 	}

@@ -13,10 +13,10 @@
 // Public declarations
 //
 
-constexpr size_t HistogramSize = 256;
-
 struct CudaHistogram
 {
+	constexpr static size_t Size = 256;
+
 	using Type = uint;
 
 	Type* data;
