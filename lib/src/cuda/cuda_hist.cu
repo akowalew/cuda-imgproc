@@ -230,6 +230,7 @@ void cuda_calculate_hist_async(CudaHistogram& hist, const CudaImage& img)
 	LOG_DEBUG("cuda_calculate_hist_async: dim_grid = (%lu,%lu)\n", dim_grid_x, dim_grid_y);
 
 	// Launch histogram calculation
+	cuda_histogram_fill_async(hist, 0);
 	cuda_calculate_hist<<<dim_grid, dim_block>>>(
 		hist.data,
 		(uchar*)img.data, img.pitch,
@@ -254,7 +255,6 @@ CudaHistogram cuda_calculate_hist(const CudaImage& img)
 	auto hist = cuda_create_histogram();
 
 	// Initialize created histogram to zero and calculate it from image
-	cuda_histogram_fill_async(hist, 0);
 	cuda_calculate_hist(hist, img);
 
 	// Return calculated histogram
@@ -268,7 +268,6 @@ void cuda_equalize_hist_async(CudaImage& dst, const CudaImage& src)
 	assert(src.rows == dst.rows);
 
 	// Launch histogram equalization sequence
-	cuda_histogram_fill_async(g_eq_hist, 0);
 	cuda_calculate_hist_async(g_eq_hist, src);
 	cuda_gen_equalize_lut_async(g_eq_lut, g_eq_hist);
 	cuda_apply_lut_async(dst, src, g_eq_lut);
