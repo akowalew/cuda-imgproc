@@ -14,28 +14,40 @@
 
 #include "log.hpp"
 
-//Assuming max filter size = 64x64
+constexpr size_t KERNELSIZE = 32;
 
-#define KERNELDIM 5
-#define KERNELSIZE (1<<KERNELDIM) // 32
+constexpr size_t BLOCKSIZE = 32;
 
-#define BLOCKSIZE 32
 __constant__ float CONVKERNEL[KERNELSIZE*KERNELSIZE];
 
-
-__global__ static void filter_kernel(uchar const* yin, uchar *yout, int n_rows, int n_cols, int K) {
+__global__ 
+static void filter_kernel(
+    uchar const* yin, uchar *yout, 
+    int n_rows, int n_cols, int K)
+{
     int c = threadIdx.x + blockIdx.x*blockDim.x;
     int r = threadIdx.y + blockIdx.y*blockDim.y;
     float acc = 0.0f;
-    for(int i=0; i<K; ++i)
-        for(int j=0; j<K; ++j) {
+
+    for(int i = 0; i < K; ++i)
+    {
+        for(int j = 0; j < K; ++j)
+        {
             acc += static_cast<float>(yin[(r + i)*n_cols + c + j]) * CONVKERNEL[K*i + j];
         }
+    }
+
     if(acc > 255.0)
+    {
         acc = 255.0f;
+    }
     if(acc < 0.0)
+    {
         acc = 0.0f;
+    }
+    
     acc += 0.5f;
+    
     yout[n_cols*r + c] = static_cast<uchar>(acc);
 }
 
@@ -96,7 +108,7 @@ __host__ void filter(const Image& src, Image& dst, const Image& kernel, int offs
     cudaFree(device_out);
 }
 
-void cuda_filter(CudaImage& dst, const CudaImage& src, CudaKernelSize ksize)
+void cuda_filter(CudaImage& dst, const CudaImage& src, size_t ksize)
 {
     // Ensure proper shapes of images
     assert(dst.cols == src.cols);
@@ -104,12 +116,13 @@ void cuda_filter(CudaImage& dst, const CudaImage& src, CudaKernelSize ksize)
     
     auto kernel = cuda_create_mean_blurr_kernel(ksize);
 
+    // TODO: Replace with kernel launch
     cuda_image_copy(dst, src);
 
     cuda_free_kernel(kernel);
 }
 
-CudaImage cuda_filter(const CudaImage& src, CudaKernelSize ksize)
+CudaImage cuda_filter(const CudaImage& src, size_t ksize)
 {
 	// Get shape of an image
 	const auto cols = src.cols;
