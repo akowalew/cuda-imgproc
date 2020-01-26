@@ -19,12 +19,9 @@ constexpr auto K = 32;
 
 CudaLUT cuda_create_lut()
 {
-	// Get size of the buffer for the lut
-	const auto size = (LUTSize * sizeof(uchar));
-
 	// Allocate LUT on the device
 	void* data;
-	checkCudaErrors(cudaMalloc(&data, size));
+	checkCudaErrors(cudaMalloc(&data, LUTBufferSize));
 
 	// Return created device LUT
 	return { (uchar*) data };
@@ -34,6 +31,12 @@ void cuda_free_lut(CudaLUT& lut)
 {
 	// Release device LUT
 	checkCudaErrors(cudaFree(lut.data));
+}
+
+void cuda_lut_fill_async(CudaLUT& lut, uchar value)
+{
+	// Fill LUT with zeros asynchronously
+	checkCudaErrors(cudaMemset(lut.data, value, LUTBufferSize));
 }
 
 __global__

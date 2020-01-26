@@ -10,6 +10,8 @@
 
 constexpr auto LUTSize = 256;
 
+constexpr auto LUTBufferSize = (LUTSize * sizeof(uchar));
+
 struct CudaLUT
 {
 	using Type = uchar;
@@ -20,6 +22,9 @@ struct CudaLUT
 CudaLUT cuda_create_lut();
 
 void cuda_free_lut(CudaLUT& lut);
+
+void cuda_lut_fill_async(CudaLUT& lut, uchar value);
+
 
 void cuda_apply_lut_async(CudaImage& dst, const CudaImage& src, const CudaLUT& lut);
 
