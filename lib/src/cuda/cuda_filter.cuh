@@ -13,7 +13,12 @@
 // Public declarations
 //
 
-void cuda_filter(CudaImage& dst, const CudaImage& src, size_t ksize);
+void cuda_set_filter_kernel(const CudaKernel& kernel);
+
+
+void cuda_filter(CudaImage& dst, const CudaImage& src);
+
+void cuda_filter(CudaImage& dst, const CudaImage& src, const CudaKernel& kernel);
 
 /**
  * @brief Applies mean-blurr convolution filter to an image
@@ -23,4 +28,4 @@ void cuda_filter(CudaImage& dst, const CudaImage& src, size_t ksize);
  * @param ksize size of the kernel
  * @return filtered image
  */
-CudaImage cuda_filter(const CudaImage& src, size_t ksize);
+CudaImage cuda_filter(const CudaImage& src, const CudaKernel& kernel);
