@@ -11,6 +11,8 @@
 
 struct CudaImage
 {
+	using Type = uchar;
+
 	void* data;
 	size_t pitch;
 	size_t cols;
