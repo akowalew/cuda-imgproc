@@ -63,7 +63,7 @@ static void equalize_hist(benchmark::State& state)
     auto dst = cuda_create_image(cols, rows);
 
     cuda_benchmark(state, [&src, &dst] {
-        cuda_equalize_hist_async(src, dst);
+        cuda_equalize_hist_async(dst, src);
     });
 
     cuda_free_image(dst);
