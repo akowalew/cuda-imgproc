@@ -107,11 +107,8 @@ static void gen_equalize_lut(benchmark::State& state)
     auto lut = cuda_create_lut();
     auto hist = cuda_create_histogram();
 
-    // Sample number of elements - image size doesn't matter
-    const auto nelems = (1920 * 1080);
-
-    cuda_benchmark(state, [&lut, &hist, nelems] {
-        cuda_gen_equalize_lut_async(lut, hist, nelems);
+    cuda_benchmark(state, [&lut, &hist] {
+        cuda_gen_equalize_lut_async(lut, hist);
     });
 
     cuda_free_histogram(hist);

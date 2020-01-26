@@ -77,7 +77,10 @@ void cuda_histogram_zero_async(CudaHistogram& hist)
 __device__
 uint cuda_calculate_cdf_in_place(uint* buf)
 {
+	// We need some variable to remember minimal CDF value 
 	uint cdf_min = 0;
+
+	// We've got first CDF value, so we're starting directly from the second
     for(auto i = 1; i < HistogramSize; ++i)
     {
     	// Calculate next CDF value
@@ -95,7 +98,7 @@ uint cuda_calculate_cdf_in_place(uint* buf)
 }
 
 __global__
-void cuda_gen_equalize_lut(uchar* lut, const uint* hist, size_t nelems)
+void cuda_gen_equalize_lut(uchar* lut, const uint* hist)
 {
 	// Generating of equalizing LUT consists of three steps:
 	//  1) Calculating CDF (continuous distribution function) of histogram
@@ -114,21 +117,26 @@ void cuda_gen_equalize_lut(uchar* lut, const uint* hist, size_t nelems)
     // Wait for all threads to finish caching
     __syncthreads();
 
+	// Calculate CDF of histogram and CDF_min (in place)
+	// This will be done only by first thread, because this is truly sequential
 	if(threadIdx.x == 0)
 	{
-		// Calculate CDF of histogram and find minimal one (in place)
 	    s_cdf_min = cuda_calculate_cdf_in_place(s_buf);
 	}
 
+	// Wait for first thread to finish CDF calculation
 	__syncthreads();
 
     // Calculate LUT value and store it
+    // where: 
+    //  - (HistogramSize-1) is both maximum value of image and index of last CDF value
+    //  - s_buf[HistogramSize-1] is last CDF value -> number of elements in the image
     lut[threadIdx.x] = 
     	(((s_buf[threadIdx.x] - s_cdf_min) * (HistogramSize-1)) 
-    		/ (nelems - s_cdf_min));
+    		/ (s_buf[HistogramSize-1] - s_cdf_min));
 }
 
-void cuda_gen_equalize_lut_async(CudaLUT& lut, const CudaHistogram& hist, size_t nelems)
+void cuda_gen_equalize_lut_async(CudaLUT& lut, const CudaHistogram& hist)
 {
 	LOG_INFO("Generating equalizing LUT with CUDA\n");
 
@@ -137,28 +145,28 @@ void cuda_gen_equalize_lut_async(CudaLUT& lut, const CudaHistogram& hist, size_t
 	const auto dim_grid = dim3(1, 1);
 
 	// Launch generation of equalizing LUT
-	cuda_gen_equalize_lut<<<dim_grid, dim_block>>>(lut.data, hist.data, nelems);
+	cuda_gen_equalize_lut<<<dim_grid, dim_block>>>(lut.data, hist.data);
 
 	// Check if launch succeeded
 	checkCudaErrors(cudaGetLastError());
 }
 
-void cuda_gen_equalize_lut(CudaLUT& lut, const CudaHistogram& hist, size_t nelems)
+void cuda_gen_equalize_lut(CudaLUT& lut, const CudaHistogram& hist)
 {
 	// Launch generation of equalize LUT
-	cuda_gen_equalize_lut_async(lut, hist, nelems);
+	cuda_gen_equalize_lut_async(lut, hist);
 
 	// Wait for device finish
 	checkCudaErrors(cudaDeviceSynchronize());
 }
 
-CudaLUT cuda_gen_equalize_lut(const CudaHistogram& hist, size_t nelems)
+CudaLUT cuda_gen_equalize_lut(const CudaHistogram& hist)
 {
 	// Allocate lut on the device
 	auto lut = cuda_create_lut();
 
 	// Perform generation of equalize LUT 
-	cuda_gen_equalize_lut(lut, hist, nelems);
+	cuda_gen_equalize_lut(lut, hist);
 
 	// Return generated LUT
 	return lut;
@@ -262,14 +270,10 @@ void cuda_equalize_hist_async(CudaImage& dst, const CudaImage& src)
 	assert(src.cols == dst.cols);
 	assert(src.rows == dst.rows);
 
-	const auto cols = src.cols;
-	const auto rows = src.rows;
-	const auto nelems = (cols * rows);
-
 	// Launch histogram equalization sequence
 	cuda_histogram_zero_async(g_eq_hist);
 	cuda_calculate_hist_async(g_eq_hist, src);
-	cuda_gen_equalize_lut_async(g_eq_lut, g_eq_hist, nelems);
+	cuda_gen_equalize_lut_async(g_eq_lut, g_eq_hist);
 	cuda_apply_lut_async(dst, src, g_eq_lut);
 }
 

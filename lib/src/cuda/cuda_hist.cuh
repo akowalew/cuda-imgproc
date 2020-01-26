@@ -42,11 +42,11 @@ void cuda_calculate_hist(CudaHistogram& hist, const CudaImage& img);
 CudaHistogram cuda_calculate_hist(const CudaImage& src);
 
 
-void cuda_gen_equalize_lut_async(CudaLUT& lut, const CudaHistogram& hist, size_t nelems);
+void cuda_gen_equalize_lut_async(CudaLUT& lut, const CudaHistogram& hist);
 
-void cuda_gen_equalize_lut(CudaLUT& lut, const CudaHistogram& hist, size_t nelems);
+void cuda_gen_equalize_lut(CudaLUT& lut, const CudaHistogram& hist);
 
-CudaLUT cuda_gen_equalize_lut(const CudaHistogram& hist, size_t nelems);
+CudaLUT cuda_gen_equalize_lut(const CudaHistogram& hist);
 
 
 void cuda_equalize_hist_async(CudaImage& dst, const CudaImage& src);
