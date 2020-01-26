@@ -119,6 +119,7 @@ endif()
 if(BUILD_TESTING)
     add_executable(imgproc-test
 	    test/test_main.cpp
+        test/cuda_hist_test.cu
         test/cuda_lut_test.cu
     )
 
