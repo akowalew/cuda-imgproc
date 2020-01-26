@@ -21,7 +21,7 @@ CudaLUT cuda_create_lut()
 {
 	// Allocate LUT on the device
 	void* data;
-	checkCudaErrors(cudaMalloc(&data, LUTBufferSize));
+	checkCudaErrors(cudaMalloc(&data, CudaLUT::BufferSize));
 
 	// Return created device LUT
 	return { (uchar*) data };
@@ -36,7 +36,7 @@ void cuda_free_lut(CudaLUT& lut)
 void cuda_lut_fill_async(CudaLUT& lut, uchar value)
 {
 	// Fill LUT with zeros asynchronously
-	checkCudaErrors(cudaMemset(lut.data, value, LUTBufferSize));
+	checkCudaErrors(cudaMemset(lut.data, value, CudaLUT::BufferSize));
 }
 
 __global__

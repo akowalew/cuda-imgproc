@@ -140,8 +140,11 @@ void cuda_gen_equalize_lut_async(CudaLUT& lut, const CudaHistogram& hist)
 {
 	LOG_INFO("Generating equalizing LUT with CUDA\n");
 
+	static_assert(CudaLUT::Size == CudaHistogram::Size,
+		"Sizes of LUT and Histograms should be the same");
+
 	// Use only one, linear, const sized block
-	const auto dim_block = dim3(LUTSize);
+	const auto dim_block = dim3(CudaLUT::Size);
 	const auto dim_grid = dim3(1, 1);
 
 	// Launch generation of equalizing LUT

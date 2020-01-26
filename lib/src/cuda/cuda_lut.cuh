@@ -8,13 +8,13 @@
 
 #include "cuda_image.cuh"
 
-constexpr auto LUTSize = 256;
-
-constexpr auto LUTBufferSize = (LUTSize * sizeof(uchar));
-
 struct CudaLUT
 {
 	using Type = uchar;
+
+	constexpr static size_t Size = 256;
+
+	constexpr static size_t BufferSize = (Size * sizeof(Type));
 
 	Type* data;
 };
