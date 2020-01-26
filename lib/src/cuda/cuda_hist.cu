@@ -75,21 +75,19 @@ void cuda_histogram_zero_async(CudaHistogram& hist)
 }
 
 __device__
-uint cuda_calculate_cdf_n(uint* cdf, const uint* hist, int n)
+uint cuda_calculate_cdf_in_place(uint* buf)
 {
 	uint cdf_min = 0;
-    uint acc = 0;
-    for(auto i = 0; i <= n; ++i)
+    for(auto i = 1; i < HistogramSize; ++i)
     {
-    	// Accumulate next histogram element and store next CDF value
-        acc += hist[i];
-        cdf[i] = acc;
+    	// Calculate next CDF value
+        buf[i] += buf[i-1];
         
     	if(cdf_min == 0)
     	{
-    		// Assign current accumulator value. Maybe it will be not zero
+    		// Assign current CDF value. Maybe it will be not zero
     		//  and we will gain a first CDF non-zero value (minimal) 
-    		cdf_min = acc;
+    		cdf_min = buf[i];
     	}
     }
 
@@ -105,21 +103,28 @@ void cuda_gen_equalize_lut(uchar* lut, const uint* hist, size_t nelems)
 	//  3) Calculating final LUT
 	// In order to optimize the runtime, all of the code is placed in one function
 
-    // We will need some temporary buffer for CDF values and for minimal one
-	__shared__ uint s_cdf[256];
+    // We will need some temporary buffer for CDF values and CDF min
+    // We will use same buffer both for CDF and for histogram caching
+	__shared__ uint s_buf[HistogramSize];
     __shared__ uint s_cdf_min;
+
+    // Cache histogram values into shared memory
+    s_buf[threadIdx.x] = hist[threadIdx.x];
+
+    // Wait for all threads to finish caching
+    __syncthreads();
 
 	if(threadIdx.x == 0)
 	{
-		// Calculate CDF values and find minimal one
-		s_cdf_min = cuda_calculate_cdf_n(s_cdf, hist, threadIdx.x);
+		// Calculate CDF of histogram and find minimal one (in place)
+	    s_cdf_min = cuda_calculate_cdf_in_place(s_buf);
 	}
 
 	__syncthreads();
 
     // Calculate LUT value and store it
     lut[threadIdx.x] = 
-    	(((s_cdf[threadIdx.x] - s_cdf_min) * 255) 
+    	(((s_buf[threadIdx.x] - s_cdf_min) * (HistogramSize-1)) 
     		/ (nelems - s_cdf_min));
 }
 
@@ -129,7 +134,7 @@ void cuda_gen_equalize_lut_async(CudaLUT& lut, const CudaHistogram& hist, size_t
 
 	// Use only one, linear, const sized block
 	const auto dim_block = dim3(LUTSize);
-	const auto dim_grid = 1;
+	const auto dim_grid = dim3(1, 1);
 
 	// Launch generation of equalizing LUT
 	cuda_gen_equalize_lut<<<dim_grid, dim_block>>>(lut.data, hist.data, nelems);
