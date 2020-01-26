@@ -143,9 +143,8 @@ CudaImage cuda_filter(const CudaImage& src, const CudaKernel& kernel)
 	// Get shape of an image
 	const auto cols = src.cols;
 	const auto rows = src.rows;
-    const auto ksize = kernel.size;
 
-	LOG_INFO("Convolution filtering with CUDA of image %lux%lu ksize %lu\n", cols, rows, ksize);
+	LOG_INFO("Convolution filtering with CUDA of image %lux%lu ksize %lu\n", cols, rows, kernel.size);
 
 	// Allocate image on the device
 	auto dst = cuda_create_image(cols, rows);
