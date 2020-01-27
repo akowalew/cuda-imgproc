@@ -1,0 +1,90 @@
+///////////////////////////////////////////////////////////////////////////////
+// cuda_median_bench.cu
+//
+// Contains definitions of benchmarks for CUDA median filterer
+///////////////////////////////////////////////////////////////////////////////
+
+#include <benchmark/benchmark.h>
+
+#include "cuda_proc.cuh"
+#include "cuda_median.cuh"
+
+#include "cuda_bench_common.cuh"
+
+/**
+ * @brief Provides arguments for benchmark when testing median algorithms
+ * @details To use them in the benchmark then, you have to type:
+ * ```c++
+ *  static void some_benchmark(benchmark::State& state)
+ *  {
+ *      const auto cols = state.range(0);
+ *      const auto rows = state.range(1);
+ *      const auto ksize = state.range(2);
+ *      ... 
+ *  }      
+ * ```
+ * 
+ * @param benchmark benchmark instance
+ */
+static void median_test_arguments(benchmark::internal::Benchmark* benchmark)
+{
+    benchmark->Args({320, 240, 3}); 
+    benchmark->Args({640, 480, 3});
+    benchmark->Args({1024, 768, 3});
+    benchmark->Args({1920, 1080, 3});
+    benchmark->Args({2560, 1440, 3});
+    benchmark->Args({3840, 2160, 3});
+
+    benchmark->Args({320, 240, 5}); 
+    benchmark->Args({640, 480, 5});
+    benchmark->Args({1024, 768, 5});
+    benchmark->Args({1920, 1080, 5});
+    benchmark->Args({2560, 1440, 5});
+    benchmark->Args({3840, 2160, 5});
+
+    benchmark->Args({320, 240, 7}); 
+    benchmark->Args({640, 480, 7});
+    benchmark->Args({1024, 768, 7});
+    benchmark->Args({1920, 1080, 7});
+    benchmark->Args({2560, 1440, 7});
+    benchmark->Args({3840, 2160, 7});
+
+    // benchmark->Args({320, 240, 11}); 
+    // benchmark->Args({640, 480, 11});
+    // benchmark->Args({1024, 768, 11});
+    // benchmark->Args({1920, 1080, 11});
+    // benchmark->Args({2560, 1440, 11});
+    // benchmark->Args({3840, 2160, 11});
+
+    // benchmark->Args({320, 240, 33}); 
+    // benchmark->Args({640, 480, 33});
+    // benchmark->Args({1024, 768, 33});
+    // benchmark->Args({1920, 1080, 33});
+    // benchmark->Args({2560, 1440, 33});
+    // benchmark->Args({3840, 2160, 33});
+}
+
+//! Performs benchmarking of cuda_median function
+static void cuda_median(benchmark::State& state)
+{
+    const size_t cols = state.range(0);
+    const size_t rows = state.range(1);
+    const size_t ksize = state.range(2);
+
+    cuda_proc_init();
+    auto src = cuda_create_image(cols, rows);
+    auto dst = cuda_create_image(cols, rows);
+
+    cuda_benchmark(state, [&dst, &src, ksize] {
+        cuda_median_async(dst, src, ksize);
+    });
+
+    cuda_free_image(dst);
+    cuda_free_image(src);
+    cuda_proc_deinit();
+}
+
+BENCHMARK(cuda_median)
+    ->UseRealTime()
+    ->UseManualTime()
+    ->Apply(median_test_arguments);
