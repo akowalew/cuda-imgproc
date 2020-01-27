@@ -6,8 +6,6 @@
 
 #include "cuda_filter.cuh"
 
-#include <cstdio>
-
 #include <cuda_runtime.h>
 
 #include <helper_cuda.h>
