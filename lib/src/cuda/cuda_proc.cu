@@ -41,19 +41,23 @@ static CudaHostImage cuda_process_host_image(const CudaHostImage& h_src, const P
 {
 	LOG_INFO("Processing host image with CUDA\n");
 
+	// Prepare buffers
 	auto d_src = cuda_image_clone_from_host(h_src);
 	auto d_kernel = cuda_create_mean_blurr_kernel(config.filter_ksize);
 
+	// Do right processing
 	auto d_medianed = cuda_median(d_src, config.median_ksize);
 	auto d_filtered = cuda_filter(d_medianed, d_kernel);
 	auto d_equalized = cuda_equalize_hist(d_filtered);
 	
+	// Copy results
 	auto h_dst = cuda_image_clone_to_host(d_equalized);
 
+	// Free temporary buffers
 	cuda_free_image(d_equalized);
 	cuda_free_image(d_filtered);
-	cuda_free_kernel(d_kernel);
 	cuda_free_image(d_medianed);
+	cuda_free_kernel(d_kernel);
 	cuda_free_image(d_src);
 
 	return h_dst;
