@@ -183,7 +183,7 @@ void cuda_calculate_hist_kernel(
 	// Allocate shared memory buffer for block-wise partial histograms
 	__shared__ uint s_hist[CudaHistogram::Size];
 
-	// Initialize local histogram with zeros
+	// Initialize shared histogram with zeros
 	const auto tid = (threadIdx.y*blockDim.x + threadIdx.x);
 	if(tid < CudaHistogram::Size)
 	{
