@@ -6,147 +6,175 @@
 
 #include "cuda_median.cuh"
 
-#include <cstdio>
-
 #include <cuda_runtime.h>
 
 #include <helper_cuda.h>
 
 #include "log.hpp"
 
-CudaImage cuda_median(const CudaImage& src, CudaMedianKernelSize ksize)
-{
-	LOG_INFO("Median filtering with CUDA\n");
-
-	return cuda_image_clone(src);
-}
+//
+// Private constants
+//
 
 constexpr int K = 32;
-__global__ static void  median_kernel(char* src, char* dst, int kernel_size, int cols, int rows);
 
-//Mocno polegam na tym, ze jeden pixel(subpixel) to unsigned char.
-void median(const Image& src, Image& dst, int kernel_size) {
-	//kernel_size max 7 - (7*2+1) = (14+1)^2
-	//7+32+7 = 32 + 14
-	int x_min = kernel_size;
-	int x_max = src.cols - kernel_size;
-	int y_min = kernel_size;
-	int y_max = src.rows - kernel_size;
-	int size = src.cols * src.rows;
+constexpr int KSizeMax = 8;
 
-	//Rozmiar jednego gridu.
+//
+// Private functions
+//
 
-	dim3 grid(K, K, 1);
-	dim3 block(  (x_max - x_min + K -1) / K, (y_max - y_min + K - 1) / K, 1);
-
-	char *src_, *dst_;
-	checkCudaErrors(cudaSetDevice(0));
-	checkCudaErrors(cudaMalloc((void**) &src_, sizeof(char) * size));
-	checkCudaErrors(cudaMalloc((void**)&dst_, sizeof(char) * size));
-	checkCudaErrors(cudaMemset(dst_, 0, size)); // To nie jest konieczne, ale przydatne w debugu.
-	checkCudaErrors(cudaMemcpy(src_, src.data, (sizeof(char) * size), cudaMemcpyHostToDevice));
-
-	median_kernel <<<block, grid >> > (src_, dst_, kernel_size, src.cols, src.rows);
-	checkCudaErrors(cudaGetLastError());
-
-	checkCudaErrors(cudaDeviceSynchronize());
-	checkCudaErrors(cudaMemcpy(dst.data, dst_, (sizeof(char) * size), cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaFree(src_));
-	checkCudaErrors(cudaFree(dst_));
-	checkCudaErrors(cudaDeviceReset());
-
-}
-
-//Stara funkcja do skanibalizowania
-void median2d(const Image& src, Image& dst, int kernel_size)
-{
-	int x_min = kernel_size;
-	int x_max = src.cols - kernel_size;
-	int y_min = kernel_size;
-	int y_max = src.rows - kernel_size;
-
-	//kernel_size promien kolka w metryce miejskiej.
-	//kernel_size 0 - jeden pixel
-	//kernel_size 1 - 9 pixeli
-	//kernel_size 2 - 25 pixeli
-	//kernel_size 3 - 49 pixeli
-	//kernel_size n - (n*2+1)^2 pixeli
-	//kernel_size max 7 - (7*2+1) = (14+1)^2
-
-	//rozmiar zalezy od liczby bitow na subpixel.
-	unsigned char hist[256] = {};
-
-	auto adr = [&src](int x, int y) {
-		return((int)((y * src.cols) + x));
-
+__global__ 
+static void cuda_median_kernel(
+	uchar* dst, size_t dpitch, 
+	const uchar* src, size_t spitch,
+	size_t cols, size_t rows, size_t ksize)
+{	
+	auto adr = [cols](int x, int y) -> int {
+		return ((y * cols) + x);
 	};
 
-	for (int x = x_min; x < x_max; x++)	for (int y = y_min; y < y_max; y++)
-	{
-		//wyzeruj histogram
-		memset(hist, 0, 256);
-		//napelnij histogram
-		for (int xx = x - kernel_size; xx <= x + kernel_size; xx++) for (int yy = y - kernel_size; yy <= y + kernel_size; yy++) hist[src.data[adr(xx, yy)]]++;
-		//znajdz odpowiedniego pixela
-			//policz ile pixelai trzeba odrzucic
-		unsigned char pixel = 0;
-		int counter = kernel_size;
-		counter = ((counter * 2) + 1);
-		counter *= counter;
-		counter /= 2;
-		//szukaj pixela w histogramie
-		do {
-			counter -= hist[pixel];
-			if (counter < 0) break;
-			pixel++;
-		} while (pixel != 255);
-		//zapisz pixela;
-		dst.data[adr(x, y)] = pixel;
-
-
-	};
-
-
-
-}
-
-
-//KERNEL kopiujacy, bez ramki
-/*
-__global__ static void  median_kernel(char* src, char* dst, int kernel_size, int cols, int rows)
-{	int x, y;
-
-	x = blockIdx.x * K + threadIdx.x + kernel_size;
-	y = blockIdx.y * K + threadIdx.y + kernel_size;
-	int point = y * cols + x;
-	if ((x < cols - kernel_size) && (y < rows - kernel_size)) dst[point] = src[point];
-}
-*/
-
-
-
-//KERNEL
-
-__global__ static void  median_kernel(char* src, char* dst, int kernel_size, int cols, int rows)
-{
-	// max kernel_size = 7. 14 = 2*7;
+	// Nie można dynamicznie alokować w ten sposób. Alokujemy maksa.
+	// max ksize = 7. 14 = 2*7;
 	// (32+14)^2 to circa 2.5 kiB. Mamy lekko 16 kiB pamieci wspoldzielonej
-	__shared__ char pixbuf[(K+14) * (K + 14)];
+	__shared__ uchar s_pixbuf[(K+14) * (K+14)];
+	uchar hist[256] = {0};
+	
+	/*
+	x, y - pozycja w calym obrazie
+	x_, y_ - pozycja w shared mem
+	xx, yy - zmienne do iterowania
+	*/
+	int x, y, x_, y_;
 
-	int x, y;
+	// Tylko pierwsze dwa warpy. Ponieważ dotyczy całych warpow, caly warp albo skoczy, albo liczy.
+	if(threadIdx.y <= 1)
+	{
+		x_ = threadIdx.y * 32 + threadIdx.x;
+		x = blockIdx.x * 32 + x_; // Adres w zrodle obrazu	
+		
+		// Tymczasowe uzycie alternatywne. Adres y, ale nie pixela, tylko ksize ponizej niego. 
+		// Liczenie adresu pixela odpowiadajacego watkowi jest ponizej i zawiera ksize.
+		y = (blockIdx.y * K);
 
+		// Watki ktore wyjezdzaja za krawedz obrazu, niczego nie laduja.
+		if((x_ < (K + (2 * ksize))) && (x < cols))
+		{
+			for(int yy = 0; yy < (K + (2 * ksize)); yy++)
+			{		
+				const int y__ = y + yy;
+				if(y__ == rows)
+				{
+					// Nie wyjezdzamy za obraz
+					break;	
+				}
 
-	//tylko pierwszy(zerowy) warp.
-	//if (threadIdx.y != 0) goto sync;
+				s_pixbuf[(yy * (K + 14)) + x_] =  src[y__*spitch + x];		
+			}
+		}
+	}
 
-
-	sync:
+	//Można liczyć, mamy dane w s_pixbuf
 	__syncthreads();
 
+	//Pozycja w całym obrazie.	
+	x = blockIdx.x * blockDim.x + threadIdx.x + ksize;
+	y = blockIdx.y * blockDim.y + threadIdx.y + ksize;
+	if((y >= rows - ksize) || (x >= cols - ksize))
+	{
+		return;
+	}
 
-	x = blockIdx.x * K + threadIdx.x + kernel_size;
-	y = blockIdx.y * K + threadIdx.y + kernel_size;
-	int point = y * cols + x;
-	if( (x < cols - kernel_size) && (y < rows - kernel_size)) dst[point] = src[point];
+	// Pozycja w s_pixbuf.
+	x_ = threadIdx.x + ksize;
+	y_ = threadIdx.y + ksize;
 
+	// Napelniamy histogram
+	for(int yy = threadIdx.y; yy <= y_ + ksize; yy++)
+	{
+		for(int xx = threadIdx.x; xx <= x_ + ksize; xx++)
+		{
+			hist[s_pixbuf[((yy * (K + 14)) + xx)]]++;
+		}
+	}
+
+	// Policz ile pixeli trzeba odrzucic
+	int counter = ksize;
+	counter = ((counter * 2) + 1);
+	counter *= counter;
+	counter /= 2;
+
+	// Szukaj pixela w histogramie
+	uchar pixel = 0;
+	do
+	{
+		counter -= hist[pixel];
+		if(counter < 0)
+		{
+			break;
+		}
+
+		pixel++;
+	}
+	while(pixel != 255);
+
+	// Pixel policzony
+	dst[y*dpitch + x] = pixel;
+}
+
+void cuda_median_async(CudaImage& dst, const CudaImage& src, CudaMedianKernelSize ksize)
+{
+	// Ensure same sizes of images
+	assert(src.cols == dst.cols);
+	assert(src.rows == dst.rows);
+
+	const auto cols = src.cols;
+	const auto rows = src.rows;
+
+	LOG_INFO("Median filtering with CUDA of image %lux%lu and ksize %lu\n", cols, rows, ksize);
+
+	const int x_min = ksize;
+	const int x_max = (cols - ksize);
+	const int y_min = ksize;
+	const int y_max = (rows - ksize);
+
+	const auto dim_grid_x = K;
+	const auto dim_grid_y = K;
+	const auto dim_grid = dim3(dim_grid_x, dim_grid_y);
+
+	const auto dim_block_x = ((x_max - x_min + K - 1) / K);
+	const auto dim_block_y = ((y_max - y_min + K - 1) / K);
+	const auto dim_block = dim3(dim_block_x, dim_block_y);
+
+	// Launch median filtering kernel
+	cuda_median_kernel<<<dim_block, dim_grid>>>(
+		(uchar*)dst.data, dst.pitch,
+		(const uchar*)src.data, src.pitch,
+		src.cols, src.rows, ksize);
+
+	// Check for kernel launch errors
+	checkCudaErrors(cudaGetLastError());
+}
+
+void cuda_median(CudaImage& dst, const CudaImage& src, CudaMedianKernelSize ksize)
+{
+	// Launch median filtering asynchronously
+	cuda_median_async(dst, src, ksize);
+
+	// Wait for finish
+	checkCudaErrors(cudaDeviceSynchronize());
+}
+
+CudaImage cuda_median(const CudaImage& src, CudaMedianKernelSize ksize)
+{
+	const auto cols = src.cols;
+	const auto rows = src.rows;
+
+	LOG_INFO("Median filtering with CUDA of image %lux%lu and ksize %lu\n", cols, rows, ksize);
+
+	auto dst = cuda_create_image(cols, rows);
+
+	cuda_median(dst, src, ksize);
+
+	return dst;
 }

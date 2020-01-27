@@ -14,6 +14,10 @@
 
 using CudaMedianKernelSize = size_t;
 
+void cuda_median_async(CudaImage& dst, const CudaImage& src, CudaMedianKernelSize ksize);
+
+void cuda_median(CudaImage& dst, const CudaImage& src, CudaMedianKernelSize ksize);
+
 /**
  * @brief Applies median filter to an image
  * @details 
