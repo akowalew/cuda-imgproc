@@ -2,7 +2,7 @@
 
 Studies project - CUDA implementation of some image processing algorithms.
 
-It consists of `process-image` application and `imgproc` library. The aim of the app is to process some grayscale images, which are read using OpenCV and then written to hard disk. 
+It consists of `process-image` application and `imgproc` library. The aim of the app is to process some grayscale 8-bit images, which are read using OpenCV and then written to hard disk. 
 Image processing algorithm consists of three phases:
  - median filtering
  - gaussian blurring
@@ -17,10 +17,11 @@ In order to build project, you will need following stuff:
  - `MSVC` on Windows
  - `CUDA Runtime`, tested on version V9.1.85 (default available in Ubuntu 18.04)
  - `CMake`, at least 3.16
- - `Conan`, at least 1.10.1
- - `OpenCV` - for reading/writing images and for reference implementation of the algorithms - to be installed via Conan or globally in the system
- - `Google Benchmark` - microbenchmarking library - to be installed via Conan or globally in the system
- - `doctest` - unit testing library - to be installed via Conan
+ - `Conan` if desired (recommended for Linux), at least 1.10.1
+ - `vcpkg` if desired (recommended for Windows), at least from 2020.01.17
+ - `OpenCV` - for reading/writing images and for reference implementation of the algorithms - to be installed via Conan, vcpkg or globally in the system
+ - `Google Benchmark` - microbenchmarking library - to be installed via Conan, vcpkg or globally in the system
+ - `doctest` - unit testing library - to be installed via Conan, vcpkg or globally in the system
  - `cuda-samples` - handy utilities needed when developing for CUDA. Available via Git submodule
 
 OpenCV and CUDA runtime is desired to be installed on host system. Other libraries may be managed using Conan package manager. 
@@ -58,6 +59,7 @@ Now you can configure build system:
 ```sh
 # Configure build system
 cmake ../ \
+    [-DCMAKE_TOOLCHAIN_FILE=<vcpkg_root>/scripts/buildsystems/vcpkg.cmake \] 
     -DCMAKE_BUILD_TYPE=<Release/Debug> \
     -DBUILD_TESTING=<ON/OFF> \
     -DBUILD_DEBUG=<ON/OFF> \
@@ -67,25 +69,39 @@ cmake ../ \
     -DBUILD_VERSION=<ref/cpu_single/cpu_multi/cuda> \
 ```
 
+Note that if you are using vcpkg you have to use its toolchain file as the first argument. If vcpkg is note used, you can ommit toolchaining.
+
 In order to build everything, just type:
 
 ```sh
 # Compile everything
-make -j${nproc}
+cmake --build . -j4
 ```
+
+## Integration with vcpkg
+
+If you would like to use vcpkg to handle dependencies in Windows, install it from [vcpkg github repo](https://github.com/microsoft/vcpkg) and run:
+
+```sh
+vcpkg install opencv4 --triplet x64-windows
+vcpkg install benchmark --triplet x64-windows
+vcpkg install doctest --triplet x64-windows
+```
+
+Note leading `x64-windows` triplet, because CUDA must be run in that configuration.
 
 ## Examples
 
 There is only one app in the project: `process-image`. Its purpose is to process image at given path using `imgproc` library. Result will be printed on screen and saved to the output file:
 
 ```sh
-./bin/process-image <input_file> <output_file> <kernel_size>
+./bin/process-image <input_file> <output_file> <median_ksize> <filter_kize>
 ```
 
 Example: 
 
 ```sh
-./bin/process-image ../assets/sample.jpg sample_out.jpg 3
+./bin/process-image ../assets/sample.jpg sample_out.jpg 3 7
 ```
 
 ## Benchmarking
@@ -123,7 +139,11 @@ sudo cpupower frequency-set --governor powersave
 Units tests are written with [doctest](https://github.com/onqtam/doctest) library. In order to run all tests, just type:
 
 ```sh
+# Use CTest runner
 make test
+
+# Or directly
+./bin/imgproc-test
 ```
 
 ## Authors:
