@@ -89,7 +89,7 @@ find_package(OpenCV REQUIRED
 
 if(BUILD_BENCHMARKING)
     # We need this library only when benchmarking
-    find_package(benchmark REQUIRED)
+    find_package(benchmark CONFIG REQUIRED)
 endif()
 
 if(BUILD_TESTING)

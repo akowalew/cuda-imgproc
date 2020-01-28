@@ -43,7 +43,7 @@ int main(int argc, char** argv)
             FilterKernelSize{std::stoul(argv[4])}
         };
 
-        // Initialize app
+        // Initialize processing library
         proc_init();
 
         // Do app logic
@@ -51,16 +51,16 @@ int main(int argc, char** argv)
         auto dst = process_image(src, process_config);
         write_image(dst, dst_path);
 
+        // Show results and wait for key
         show_image(src, "Source image");
         show_image(dst, "Destination image");
-
         wait_for_exit();
 
         // Free memory
         free_image(dst);
         free_image(src);
 
-        // Deinitialize app
+        // Deinitialize processing library
         proc_deinit();
     }
     catch(std::exception& ex)

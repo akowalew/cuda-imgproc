@@ -91,9 +91,7 @@ if(BUILD_BENCHMARKING)
         PRIVATE
             imgproc
 
-            ${benchmark_LIBRARIES}
-            benchmark
-            pthread
+            benchmark::benchmark
     )
 
     target_include_directories(imgproc-bench
