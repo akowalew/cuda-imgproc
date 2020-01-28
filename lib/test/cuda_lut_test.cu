@@ -4,7 +4,7 @@
 // Contains implementation of tests for CUDA lut module
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "doctest.h"
+#include "doctest/doctest.h"
 
 #include <algorithm>
 

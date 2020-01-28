@@ -4,7 +4,7 @@
 // Contains implementation of tests for CUDA hist module
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "doctest.h"
+#include "doctest/doctest.h"
 
 #include <algorithm>
 
