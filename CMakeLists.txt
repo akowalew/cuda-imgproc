@@ -20,6 +20,9 @@ option(BUILD_CONAN "Whether to use Conan package manager or not" ON)
 option(BUILD_EXTERN "Whether to build extern libs or not" ON)
 option(BUILD_VERBOSE "Whether to enable build verbosity or not" ON)
 
+set(LOG_LEVEL "OFF" CACHE STRING "Sets desired log level across the project")
+set_property(CACHE LOG_LEVEL PROPERTY STRINGS TRACE DEBUG INFO WARNING ERROR OFF)
+
 ###############################################################################
 # Project global options
 ###############################################################################
@@ -32,6 +35,9 @@ endif()
 if(BUILD_DEBUG)
     add_definitions(-DDEBUG)
 endif()
+
+# Set desired log level across the project
+add_definitions(-DLOG_LEVEL=LOG_LEVEL_${LOG_LEVEL})
 
 # If some CXX or CUDA standard is needed for a target, require it
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
