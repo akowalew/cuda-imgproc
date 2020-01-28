@@ -64,12 +64,11 @@ cmake ../ \
     -DBUILD_TESTING=<ON/OFF> \
     -DBUILD_DEBUG=<ON/OFF> \
     -DBUILD_BENCHMARKING=<ON/OFF> \
-    -DBUILD_CUDA=<ON/OFF> \
     -DBUILD_CONAN=<ON/OFF> \
-    -DBUILD_VERSION=<ref/cpu_single/cpu_multi/cuda> \
+    -DLOG_LEVEL=<TRACE/DEBUG/INFO/WARNING/ERROR/OFF> \
 ```
 
-Note that if you are using vcpkg you have to use its toolchain file as the first argument. If vcpkg is note used, you can ommit toolchaining.
+Note that if you are using vcpkg you have to use its toolchain file as the first argument. If vcpkg is not used, you can omit toolchaining.
 
 In order to build everything, just type:
 
