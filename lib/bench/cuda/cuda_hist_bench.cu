@@ -33,7 +33,6 @@ static void equalize_hist(benchmark::State& state)
 }
 
 BENCHMARK(equalize_hist)
-    ->UseRealTime()
     ->UseManualTime()
     ->Apply(get_resolutions);
 
@@ -44,7 +43,6 @@ static void calculate_hist(benchmark::State& state)
     const size_t rows = state.range(1);
 
     cuda_proc_init();
-    cuda_hist_init();
     auto img = cuda_create_image(cols, rows);
     auto hist = cuda_create_histogram();
 
@@ -54,12 +52,10 @@ static void calculate_hist(benchmark::State& state)
 
     cuda_free_histogram(hist);
     cuda_free_image(img);
-    cuda_hist_deinit();
     cuda_proc_deinit();
 }
 
 BENCHMARK(calculate_hist)
-    ->UseRealTime()
     ->UseManualTime()
     ->Apply(get_resolutions);
 
@@ -67,7 +63,6 @@ BENCHMARK(calculate_hist)
 static void gen_equalize_lut(benchmark::State& state)
 {
     cuda_proc_init();
-    cuda_hist_init();
     auto lut = cuda_create_lut();
     auto hist = cuda_create_histogram();
 
@@ -77,10 +72,8 @@ static void gen_equalize_lut(benchmark::State& state)
 
     cuda_free_histogram(hist);
     cuda_free_lut(lut);
-    cuda_hist_deinit();
     cuda_proc_deinit();
 }
 
 BENCHMARK(gen_equalize_lut)
-    ->UseRealTime()
     ->UseManualTime();

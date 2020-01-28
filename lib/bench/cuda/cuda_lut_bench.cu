@@ -33,6 +33,5 @@ static void cuda_apply_lut(benchmark::State& state)
 }
 
 BENCHMARK(cuda_apply_lut)
-    ->UseRealTime()
     ->UseManualTime()
     ->Apply(get_resolutions);

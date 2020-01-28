@@ -85,6 +85,5 @@ static void cuda_median(benchmark::State& state)
 }
 
 BENCHMARK(cuda_median)
-    ->UseRealTime()
     ->UseManualTime()
     ->Apply(median_test_arguments);
