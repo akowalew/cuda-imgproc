@@ -10,21 +10,32 @@
 
 # Include sources common for all build versions
 list(APPEND imgproc_SOURCES
-    src/cuda/cuda_filter.cu
-    src/cuda/cuda_hist.cu
-    src/cuda/cuda_host_image.cu
-    src/cuda/cuda_image.cu
-    src/cuda/cuda_kernel.cu
-    src/cuda/cuda_lut.cu
-    src/cuda/cuda_median.cu
-    src/cuda/cuda_proc.cu
-
     src/debug.cpp
     src/image.cpp
     src/proc.cpp
     src/reader.cpp
     src/writer.cpp
 )
+
+if(BUILD_VERSION STREQUAL CUDA)
+    list(APPEND imgproc_SOURCES
+        src/cuda/cuda_filter.cu
+        src/cuda/cuda_hist.cu
+        src/cuda/cuda_host_image.cu
+        src/cuda/cuda_image.cu
+        src/cuda/cuda_kernel.cu
+        src/cuda/cuda_lut.cu
+        src/cuda/cuda_median.cu
+        src/cuda/cuda_proc.cu
+    )
+else()
+    list(APPEND imgproc_SOURCES
+        src/cpu/cpu_filter.cpp
+        src/cpu/cpu_hist.cpp
+        src/cpu/cpu_median.cpp
+        src/cpu/cpu_proc.cpp
+    )
+endif()
 
 ###############################################################################
 # Library definition
@@ -41,6 +52,12 @@ target_include_directories(imgproc
     PRIVATE
         src/
         src/cuda
+        src/cpu
+)
+
+target_compile_definitions(imgproc
+    PRIVATE
+        -DBUILD_VERSION_${BUILD_VERSION}
 )
 
 target_link_libraries(imgproc
@@ -77,11 +94,16 @@ target_compile_options(imgproc
 if(BUILD_BENCHMARKING)
     list(APPEND imgproc-bench_SOURCES
         bench/bench_main.cpp
-        bench/cuda/cuda_filter_bench.cu
-        bench/cuda/cuda_hist_bench.cu
-        bench/cuda/cuda_lut_bench.cu
-        bench/cuda/cuda_median_bench.cu
     )
+
+    if(BUILD_VERSION STREQUAL CUDA)
+        list(APPEND imgproc-bench_SOURCES
+            bench/cuda/cuda_filter_bench.cu
+            bench/cuda/cuda_hist_bench.cu
+            bench/cuda/cuda_lut_bench.cu
+            bench/cuda/cuda_median_bench.cu
+        )
+    endif()
 
     add_executable(imgproc-bench
         ${imgproc-bench_SOURCES}
@@ -115,12 +137,17 @@ endif()
 ###############################################################################
 
 if(BUILD_TESTING)
+    if(BUILD_VERSION STREQUAL CUDA)
+        list(APPEND imgproc-test_SOURCES
+            test/cuda_hist_test.cu
+            test/cuda_lut_test.cu
+        )
+    endif()
+
     add_executable(imgproc-test
 	    test/test_main.cpp
-        test/cuda_hist_test.cu
-        test/cuda_lut_test.cu
+        ${imgproc-test_SOURCES}
     )
-
     target_include_directories(imgproc-test
         PRIVATE
             $<TARGET_PROPERTY:imgproc,INCLUDE_DIRECTORIES>

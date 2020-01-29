@@ -5,7 +5,7 @@
 ###############################################################################
 
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
-project(cuda-imgproc VERSION 0.1.0 LANGUAGES CXX CUDA)
+project(cuda-imgproc VERSION 0.1.0 LANGUAGES CXX)
 
 ###############################################################################
 # Global options
@@ -23,9 +23,17 @@ option(BUILD_VERBOSE "Whether to enable build verbosity or not" ON)
 set(LOG_LEVEL "OFF" CACHE STRING "Sets desired log level across the project")
 set_property(CACHE LOG_LEVEL PROPERTY STRINGS TRACE DEBUG INFO WARNING ERROR OFF)
 
+set(BUILD_VERSION "CUDA" CACHE STRING "Sets desired build version across the project")
+set_property(CACHE BUILD_VERSION PROPERTY STRINGS CPU CUDA)
+
 ###############################################################################
 # Project global options
 ###############################################################################
+
+if(BUILD_VERSION STREQUAL CUDA)
+    # If build version is CUDA-targeted, we need to enable that language
+    enable_language(CUDA)
+endif()
 
 if(BUILD_TESTING)
     # If unit-tests needed, enable CMake testing suite
@@ -103,7 +111,7 @@ if(BUILD_TESTING)
 	find_package(doctest REQUIRED)
 endif()
 
-if(BUILD_VERSION STREQUAL "cpu_multi")
+if(BUILD_VERSION STREQUAL CPU)
     # We need OpenMP extensions when building for CPU with multicore configuration
     find_package(OpenMP REQUIRED)
 endif()

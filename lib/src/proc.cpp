@@ -8,9 +8,13 @@
 
 #include <cstdio>
 
-#include "cuda_proc.cuh"
-
 #include "log.hpp"
+
+#ifdef BUILD_VERSION_CUDA
+# include "cuda_proc.cuh"
+#else
+# include "cpu_proc.hpp"
+#endif
 
 //
 // Public functions
@@ -20,19 +24,31 @@ void proc_init()
 {
 	LOG_INFO("Initializing proc module\n");
 
+#ifdef BUILD_VERSION_CUDA
 	cuda_proc_init();
+#else
+	cpu_proc_init();
+#endif
 }
 
 void proc_deinit()
 {
 	LOG_INFO("Deinitializing proc module\n");
 
+#ifdef BUILD_VERSION_CUDA
 	cuda_proc_deinit();
+#else 
+	cpu_proc_deinit();
+#endif
 }
 
 Image process_image(const Image& img, const ProcessConfig& config)
 {
 	LOG_INFO("Processing image\n");
 
+#ifdef BUILD_VERSION_CUDA
 	return cuda_process_image(img, config);
+#else
+	return cpu_process_image(img, config);
+#endif
 }
