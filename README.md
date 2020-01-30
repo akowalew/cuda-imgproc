@@ -121,7 +121,7 @@ sudo cpupower frequency-set --governor performance
 Then you can test your functions under benchmark suite. Example invokation:
 
 ```sh
-./bin/process-image-bench --benchmark_repetitions=25
+./bin/imgproc-bench --benchmark_repetitions=25
 ```
 
 Since benchmark is written with Google Benchmark, you may take advantage of CLI options provided by it (just type `--help` to see all of them)
