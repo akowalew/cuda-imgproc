@@ -18,7 +18,6 @@ static void equalize_hist(benchmark::State& state)
     const size_t rows = state.range(1);
 
     cuda_proc_init();
-    cuda_hist_init();
     auto src = cuda_create_image(cols, rows);
     auto dst = cuda_create_image(cols, rows);
 
@@ -28,7 +27,6 @@ static void equalize_hist(benchmark::State& state)
 
     cuda_free_image(dst);
     cuda_free_image(src);
-    cuda_hist_deinit();
     cuda_proc_deinit();
 }
 
