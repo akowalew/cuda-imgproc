@@ -65,7 +65,7 @@ void cuda_image_copy_from_host_async(CudaImage& d_dst, const CudaHostImage& h_sr
 	assert(d_dst.rows >= h_src.rows);
 
 	LOG_INFO("Copying CUDA image data from host %lux%lu to device %lux%lu\n", 
-		h_src.cols, h_src.rows, h_dst.cols, h_dst.rows);
+		h_src.cols, h_src.rows, d_dst.cols, d_dst.rows);
 
 	// Calculate parameters needed by cuda
 	const auto src_width = (h_src.cols * sizeof(uchar));
