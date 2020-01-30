@@ -47,34 +47,6 @@ static void cuda_reset_device()
 	checkCudaErrors(cudaDeviceReset());
 }
 
-static void cuda_process_image_async(
-	size_t cols, size_t rows,
-	size_t filter_ksize, size_t median_ksize)
-{
-	// Form subimages from local images, suited to given size
-	auto img_a = cuda_image_sub(g_img_a, cols, rows);
-	auto img_b = cuda_image_sub(g_img_b, cols, rows);
-
-	// Do right processing asynchronously
-	cuda_median_async(img_b, img_a, median_ksize);
-	cuda_filter_async(img_a, img_b, filter_ksize);
-	cuda_equalize_hist_async(img_b, img_a);
-}
-
-static void cuda_proc_copy_inputs_from_host_async(const Image& h_src, const Kernel& h_filter_kernel)
-{
-	// Copy data from host asynchronously
-	cuda_image_copy_from_host_async(g_img_a, h_src);
-	cuda_filter_copy_kernel_from_host_async(h_filter_kernel);
-}
-
-static void cuda_proc_copy_outputs_to_host_async(Image& h_dst)
-{
-	// Copy data to host asynchronously
-	auto img_b = cuda_image_sub(g_img_b, h_dst.cols, h_dst.rows);
-	cuda_image_copy_to_host_async(h_dst, img_b);
-}
-
 static void cuda_process_host_image_async(
 	Image& h_dst, const Image& h_src, 
 	const Kernel& h_filter_kernel, size_t median_ksize)
@@ -86,9 +58,21 @@ static void cuda_process_host_image_async(
 	const auto rows = h_src.rows;
 	const auto filter_ksize = h_filter_kernel.cols;
 
-	cuda_proc_copy_inputs_from_host_async(h_src, h_filter_kernel);
-	cuda_process_image_async(cols, rows, filter_ksize, median_ksize);
-	cuda_proc_copy_outputs_to_host_async(h_dst);
+	// Form subimages from local images, suited to given size
+	auto img_a = cuda_image_sub(g_img_a, cols, rows);
+	auto img_b = cuda_image_sub(g_img_b, cols, rows);
+
+	// Copy data from host asynchronously
+	cuda_image_copy_from_host_async(img_a, h_src);
+	cuda_filter_copy_kernel_from_host_async(h_filter_kernel);
+
+	// Do right processing asynchronously
+	cuda_median_async(img_b, img_a, median_ksize);
+	cuda_filter_async(img_a, img_b, filter_ksize);
+	cuda_equalize_hist_async(img_b, img_a);
+
+	// Copy data to host asynchronously
+	cuda_image_copy_to_host_async(h_dst, img_b);
 }
 
 //
