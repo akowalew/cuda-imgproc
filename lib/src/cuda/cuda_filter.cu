@@ -35,6 +35,9 @@ void cuda_filter_copy_kernel_from_host_async(const Kernel& kernel)
     assert(kernel.cols == kernel.rows);
     const auto ksize = kernel.cols;
 
+    // Ensure kernel is smaller than maximum available
+    assert(ksize <= KSizeMax);
+
     LOG_INFO("Setting CUDA kernel for filter %lux%lu\n", ksize, ksize);
 
     const auto buffer = (void*) kernel.data;
