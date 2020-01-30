@@ -42,13 +42,13 @@ void proc_deinit()
 #endif
 }
 
-Image process_image(const Image& img, const ProcessConfig& config)
+Image process_image(const Image& img, const Kernel& filter_kernel, size_t median_ksize)
 {
 	LOG_INFO("Processing image\n");
 
 #ifdef BUILD_VERSION_CUDA
-	return cuda_process_image(img, config);
+	return cuda_process_host_image(img, filter_kernel, median_ksize);
 #else
-	return cpu_process_image(img, config);
+	return cpu_process_image(img, filter_kernel, median_ksize);
 #endif
 }

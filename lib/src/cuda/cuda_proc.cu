@@ -37,52 +37,31 @@ static void cuda_reset_device()
 	checkCudaErrors(cudaDeviceReset());
 }
 
-static void cuda_process_host_image(CudaHostImage& h_dst, const CudaHostImage& h_src, const ProcessConfig& config)
+static void cuda_process_image_async(
+	CudaImage& img_b, CudaImage& img_a, 
+	size_t filter_ksize, size_t median_ksize)
 {
-	// Ensure correct images size
-	assert(h_dst.cols == h_src.cols);
-	assert(h_dst.rows == h_src.rows);
-
-	const auto cols = h_src.cols;
-	const auto rows = h_src.rows;
-	const auto filter_ksize = config.filter_ksize;
-	const auto median_ksize = config.median_ksize;
-
-	LOG_INFO("Processing host image with CUDA\n");
-
-	// Allocate buffers (synchronization point)
-	auto d_kernel = cuda_create_kernel(filter_ksize);
-	auto d_img_a = cuda_create_image(cols, rows);
-	auto d_img_b = cuda_create_image(cols, rows);
-
-	// Copy host data (synchronization point)
-	cuda_image_copy_from_host(d_img_a, h_src);
-
-	// Prepare kernel and set is as current for conv filtering (synchronization point)
-	cuda_kernel_mean_blurr(d_kernel);
-	cuda_set_filter_kernel_async(d_kernel);
-
-	// Do right processing
-	cuda_median_async(d_img_b, d_img_a, median_ksize);
-	cuda_filter_async(d_img_a, d_img_b);
-	cuda_equalize_hist_async(d_img_b, d_img_a);
-	
-	// Copy device data (synchronization point)
-	cuda_image_copy_to_host(h_dst, d_img_b);
-
-	// Free temporary buffers (synchronization point)
-	cuda_free_kernel(d_kernel);
-	cuda_free_image(d_img_a);
-	cuda_free_image(d_img_b);
+	// Do right processing asynchronously
+	cuda_median_async(img_b, img_a, median_ksize);
+	cuda_filter_async(img_a, img_b, filter_ksize);
+	cuda_equalize_hist_async(img_b, img_a);
 }
 
-CudaHostImage cuda_process_host_image(const CudaHostImage& src, const ProcessConfig& config)
+static void cuda_process_host_image_async(
+	Image& h_dst, const Image& h_src, 
+	const Kernel& h_filter_kernel, size_t median_ksize,
+	CudaImage& d_img_a, CudaImage& d_img_b)
 {
-	auto dst = cuda_create_host_image(src.cols, src.rows);
+	// Copy data from host asynchronously
+	cuda_image_copy_from_host_async(d_img_a, h_src);
+	cuda_filter_copy_kernel_from_host_async(h_filter_kernel);
 
-	cuda_process_host_image(dst, src, config);
-
-	return dst;
+	// Perform image processing asynchronously
+	const auto filter_ksize = h_filter_kernel.cols;
+	cuda_process_image_async(d_img_b, d_img_a, filter_ksize, median_ksize);
+		
+	// Copy data to host asynchronously
+	cuda_image_copy_to_host_async(h_dst, d_img_b);
 }
 
 //
@@ -111,7 +90,29 @@ void cuda_proc_deinit()
 	cuda_reset_device();
 }
 
-Image cuda_process_image(const Image& src, const ProcessConfig& config)
+
+Image cuda_process_host_image(
+	const Image& h_src, 
+	const Kernel& kernel, size_t median_ksize)
 {
-	return cuda_process_host_image(src, config);
+	const auto cols = h_src.cols;
+	const auto rows = h_src.rows;
+
+	LOG_INFO("Processing image with CUDA\n");
+	
+	// Allocate temporary host buffer
+	auto h_dst = cuda_create_host_image(cols, rows);
+
+	// Allocate temporary CUDA buffers (synchronization point)
+	auto d_img_a = cuda_create_image(cols, rows);
+	auto d_img_b = cuda_create_image(cols, rows);
+
+	// Perform processing of host image asynchronously
+	cuda_process_host_image_async(h_dst, h_src, kernel, median_ksize, d_img_a, d_img_b);
+
+	// Free temporary CUDA buffers (synchronization point)
+	cuda_free_image(d_img_a);
+	cuda_free_image(d_img_b);
+
+	return h_dst;
 }

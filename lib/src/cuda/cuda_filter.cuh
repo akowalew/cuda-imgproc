@@ -13,14 +13,14 @@
 // Public declarations
 //
 
-void cuda_set_filter_kernel_async(const CudaKernel& kernel);
+void cuda_filter_copy_kernel_from_host_async(const Kernel& kernel);
 
 /**
  * @brief Applies mean-blurr convolution filter to an image
  * @details 
  * 
+ * @param dst destination image
  * @param src source image
  * @param ksize size of the kernel
- * @return filtered image
  */
-void cuda_filter_async(CudaImage& dst, const CudaImage& src);
+void cuda_filter_async(CudaImage& dst, const CudaImage& src, size_t ksize);

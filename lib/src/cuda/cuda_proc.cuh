@@ -35,4 +35,4 @@ void cuda_proc_deinit();
  * 
  * @return processing result
  */
-Image cuda_process_image(const Image& src, const ProcessConfig& config);
+Image cuda_process_host_image(const Image& src, const Kernel& kernel, size_t median_ksize);

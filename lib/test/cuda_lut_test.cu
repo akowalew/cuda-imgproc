@@ -24,9 +24,9 @@ static void cuda_apply_lut_filled_test(
 	cuda_image_fill_async(src, src_v);
 	cuda_lut_fill_async(lut, lut_v);
     cuda_apply_lut_async(d_dst, src, lut);
+    cuda_image_copy_to_host_async(h_dst, d_dst);
     checkCudaErrors(cudaDeviceSynchronize());
 
-    cuda_image_copy_to_host(h_dst, d_dst);
     CHECK(std::all_of((const uchar*) h_dst.data, h_dst.dataend, 
     	[lut_v](uchar v) { return v == lut_v; }));
 }

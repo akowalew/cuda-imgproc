@@ -58,16 +58,7 @@ void cuda_image_copy(CudaImage& d_dst, const CudaImage& d_src)
 		d_src.data, d_src.pitch, width, height, cudaMemcpyDeviceToDevice));
 }
 
-void cuda_image_copy_from_host(CudaImage& d_dst, const CudaHostImage& h_src)
-{
-	// Ensure proper images sizes
-	assert(d_dst.cols == h_src.cols);
-	assert(d_dst.rows == h_src.rows);
-
-	cuda_image_copy_data_from_host(d_dst, h_src.data);
-}
-
-void cuda_image_copy_data_from_host(CudaImage& d_dst, const void* h_src_data)
+void cuda_image_copy_from_host_async(CudaImage& d_dst, const CudaHostImage& h_src)
 {
 	const auto cols = d_dst.cols;
 	const auto rows = d_dst.rows;
@@ -83,21 +74,16 @@ void cuda_image_copy_data_from_host(CudaImage& d_dst, const void* h_src_data)
 	const auto spitch = width;
 
 	// Perform data copy from host
-	checkCudaErrors(cudaMemcpy2D(d_dst.data, dpitch, h_src_data, spitch,
+	checkCudaErrors(cudaMemcpy2DAsync(d_dst.data, dpitch, h_src.data, spitch,
 		width, height, cudaMemcpyHostToDevice));
 }
 
-void cuda_image_copy_to_host(CudaHostImage& h_dst, const CudaImage& d_src)
+void cuda_image_copy_to_host_async(CudaHostImage& h_dst, const CudaImage& d_src)
 {
 	// Ensure proper images sizes
 	assert(h_dst.cols == d_src.cols);
 	assert(h_dst.rows == d_src.rows);
-
-	cuda_image_copy_data_to_host(h_dst.data, d_src);
-}
-
-void cuda_image_copy_data_to_host(void* h_dst_data, const CudaImage& d_src)
-{
+	
 	const auto cols = d_src.cols;
 	const auto rows = d_src.rows;
 
@@ -112,7 +98,7 @@ void cuda_image_copy_data_to_host(void* h_dst_data, const CudaImage& d_src)
 	const auto dpitch = width;
 
 	// Perform data copy to host
-	checkCudaErrors(cudaMemcpy2D(h_dst_data, dpitch, d_src.data, spitch,
+	checkCudaErrors(cudaMemcpy2D(h_dst.data, dpitch, d_src.data, spitch,
 		width, height, cudaMemcpyDeviceToHost));	
 }
 

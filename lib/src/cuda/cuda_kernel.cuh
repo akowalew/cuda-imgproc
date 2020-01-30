@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "kernel.hpp"
+
 struct CudaKernel
 {
 	using Type = float;
@@ -18,6 +20,3 @@ struct CudaKernel
 CudaKernel cuda_create_kernel(size_t ksize);
 
 void cuda_free_kernel(CudaKernel& kernel);
-
-
-void cuda_kernel_mean_blurr(CudaKernel& dst);

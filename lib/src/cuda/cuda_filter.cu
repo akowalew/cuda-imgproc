@@ -25,16 +25,15 @@ static constexpr size_t KSizeMax = 32;
 //! Constant array with filter kernel coefficients
 __constant__ float c_kernel[KSizeMax*KSizeMax];
 
-//! Size of current stored in constant memory kernel
-static size_t ksize;
-
 //
 // Private functions
 //
 
-void cuda_set_filter_kernel_async(const CudaKernel& kernel)
+void cuda_filter_copy_kernel_from_host_async(const Kernel& kernel)
 {
-    ksize = kernel.size;
+    // Ensure kernel is square-sized
+    assert(kernel.cols == kernel.rows);
+    const auto ksize = kernel.cols;
 
     LOG_INFO("Setting CUDA kernel for filter %lux%lu\n", ksize, ksize);
 
@@ -42,7 +41,7 @@ void cuda_set_filter_kernel_async(const CudaKernel& kernel)
     const auto buffer_size = (ksize * ksize * sizeof(CudaKernel::Type));
     const auto buffer_offset = 0;
     checkCudaErrors(cudaMemcpyToSymbolAsync(c_kernel, buffer, 
-        buffer_size, buffer_offset, cudaMemcpyDeviceToDevice));
+        buffer_size, buffer_offset, cudaMemcpyHostToDevice));
 }
 
 __global__ 
@@ -81,7 +80,7 @@ static void filter_kernel(
     dst_ex[(y+offset)*dpitch_ex + (x+offset)] = static_cast<uchar>(acc);
 }
  
-void cuda_filter_async(CudaImage& dst, const CudaImage& src)
+void cuda_filter_async(CudaImage& dst, const CudaImage& src, size_t ksize)
 {
     // Ensure proper shapes of images
     assert(dst.cols == src.cols);
@@ -94,8 +93,8 @@ void cuda_filter_async(CudaImage& dst, const CudaImage& src)
     const auto offset = (ksize / 2);
     
     // Padding rows and cols size to kernel size granularity
-    int cols_ex = ((cols + (ksize-1) + (K-1)) / K) * K;
-    int rows_ex = ((rows + (ksize-1) + (K-1)) / K) * K;
+    const auto cols_ex = ((cols + (ksize-1) + (K-1)) / K) * K;
+    const auto rows_ex = ((rows + (ksize-1) + (K-1)) / K) * K;
     
     // Allocate extended images buffers
     auto src_ex = cuda_create_image(cols_ex, rows_ex);
@@ -140,13 +139,13 @@ void cuda_filter_async(CudaImage& dst, const CudaImage& src)
     checkCudaErrors(cudaDeviceSynchronize());
 
     // Dimensions of each block (in threads)
-    const unsigned dim_block_x = K;
-    const unsigned dim_block_y = K;
+    const auto dim_block_x = K;
+    const auto dim_block_y = K;
     const auto dim_block = dim3(dim_block_x, dim_block_y);
 
     // Dimensions of a grid (in blocks)
-    const unsigned dim_grid_x = ((cols+K-1) / K);
-    const unsigned dim_grid_y = ((rows+K-1) / K);
+    const auto dim_grid_x = ((cols+K-1) / K);
+    const auto dim_grid_y = ((rows+K-1) / K);
     const auto dim_grid = dim3(dim_grid_x, dim_grid_y);
 
     LOG_INFO("dim_grid %lux%lu ex %lux%lu norm %lux%lu\n", 

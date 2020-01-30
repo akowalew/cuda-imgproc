@@ -7,6 +7,7 @@
 #pragma once
 
 #include "image.hpp"
+#include "kernel.hpp"
 
 /**
  * @brief Initializes image processor module
@@ -21,30 +22,6 @@ void proc_init();
  */
 void proc_deinit();
 
-
-struct MedianKernelSize
-{
-	size_t value;
-	constexpr operator size_t() const noexcept { return value; }
-};
-
-struct FilterKernelSize
-{
-	size_t value;
-	constexpr operator size_t() const noexcept { return value; }
-};
-
-
-/**
- * @brief Image processing configuration
- * @details It describes the parameters used for image processing
- */
-struct ProcessConfig
-{
-	MedianKernelSize median_ksize {3}; //! Size of median filter kernel
-	FilterKernelSize filter_ksize {3}; //! Size of convolution filter
-};
-
 /**
  * @brief Processes the image according to specified configuration
  * @details Image is processed in following steps:
@@ -53,8 +30,9 @@ struct ProcessConfig
  *  3) Histogram equalization
  * 
  * @param img image to process
- * @param config processing configuration
+ * @param filter_kernel convolution filter kernel
+ * @param median_ksize size of kernel for median filtering
  * 
  * @return processing result
  */
-Image process_image(const Image& img, const ProcessConfig& config);
+Image process_image(const Image& img, const Kernel& filter_kernel, size_t median_ksize);

@@ -12,6 +12,7 @@
 list(APPEND imgproc_SOURCES
     src/debug.cpp
     src/image.cpp
+    src/kernel.cpp
     src/proc.cpp
     src/reader.cpp
     src/writer.cpp
