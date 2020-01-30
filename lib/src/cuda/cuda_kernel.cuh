@@ -20,3 +20,7 @@ struct CudaKernel
 CudaKernel cuda_create_kernel(size_t ksize);
 
 void cuda_free_kernel(CudaKernel& kernel);
+
+void cuda_host_kernel_register(const Kernel& kernel);
+
+void cuda_host_kernel_unregister(const Kernel& kernel);

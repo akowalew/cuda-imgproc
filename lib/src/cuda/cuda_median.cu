@@ -133,10 +133,10 @@ void cuda_median_async(CudaImage& dst, const CudaImage& src, CudaMedianKernelSiz
 
 	LOG_INFO("Median filtering with CUDA of image %lux%lu and ksize %lu\n", cols, rows, ksize);
 
-	const int x_min = ksize;
-	const int x_max = (cols - ksize);
-	const int y_min = ksize;
-	const int y_max = (rows - ksize);
+	const auto x_min = ksize;
+	const auto x_max = (cols - ksize);
+	const auto y_min = ksize;
+	const auto y_max = (rows - ksize);
 
 	const auto dim_grid_x = K;
 	const auto dim_grid_y = K;

@@ -93,7 +93,7 @@ void cuda_proc_deinit()
 
 Image cuda_process_host_image(
 	const Image& h_src, 
-	const Kernel& kernel, size_t median_ksize)
+	const Kernel& h_kernel, size_t median_ksize)
 {
 	const auto cols = h_src.cols;
 	const auto rows = h_src.rows;
@@ -103,12 +103,23 @@ Image cuda_process_host_image(
 	// Allocate temporary host buffer
 	auto h_dst = cuda_create_host_image(cols, rows);
 
+	// Page-lock host buffers
+	cuda_host_image_register(h_src);
+	cuda_host_image_register(h_dst);
+	cuda_host_kernel_register(h_kernel);
+
 	// Allocate temporary CUDA buffers (synchronization point)
 	auto d_img_a = cuda_create_image(cols, rows);
 	auto d_img_b = cuda_create_image(cols, rows);
 
-	// Perform processing of host image asynchronously
-	cuda_process_host_image_async(h_dst, h_src, kernel, median_ksize, d_img_a, d_img_b);
+	// Perform processing of host image
+	cuda_process_host_image_async(h_dst, h_src, h_kernel, median_ksize, d_img_a, d_img_b);
+	checkCudaErrors(cudaDeviceSynchronize());
+
+	// Un-Page-lock host buffers
+	cuda_host_kernel_unregister(h_kernel);
+	cuda_host_image_unregister(h_dst);
+	cuda_host_image_unregister(h_src);
 
 	// Free temporary CUDA buffers (synchronization point)
 	cuda_free_image(d_img_a);
