@@ -13,6 +13,7 @@
 #include "reader.hpp"
 #include "proc.hpp"
 #include "writer.hpp"
+#include "kernel.hpp"
 
 /**
  * @brief Main program routine
@@ -38,17 +39,16 @@ int main(int argc, char** argv)
         // Parse CLI arguments
         const auto src_path = argv[1];
         const auto dst_path = argv[2];
-        const auto process_config = ProcessConfig {
-            MedianKernelSize{std::stoul(argv[3])},
-            FilterKernelSize{std::stoul(argv[4])}
-        };
+        const auto median_ksize = std::stoul(argv[3]);
+        const auto filter_ksize = std::stoul(argv[4]);
 
         // Initialize processing library
         proc_init();
 
         // Do app logic
+        auto filter_kernel = create_mean_blurr_kernel(filter_ksize);
         auto src = read_image(src_path);
-        auto dst = process_image(src, process_config);
+        auto dst = process_image(src, filter_kernel, median_ksize);
         write_image(dst, dst_path);
 
         // Show results and wait for keyboard press
@@ -59,6 +59,7 @@ int main(int argc, char** argv)
         // Free memory
         free_image(dst);
         free_image(src);
+        free_kernel(filter_kernel);
 
         // Deinitialize processing library
         proc_deinit();
