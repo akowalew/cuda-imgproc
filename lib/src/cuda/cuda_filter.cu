@@ -32,7 +32,7 @@ static size_t ksize;
 // Private functions
 //
 
-void cuda_set_filter_kernel(const CudaKernel& kernel)
+void cuda_set_filter_kernel_async(const CudaKernel& kernel)
 {
     ksize = kernel.size;
 
@@ -41,7 +41,7 @@ void cuda_set_filter_kernel(const CudaKernel& kernel)
     const auto buffer = (void*) kernel.data;
     const auto buffer_size = (ksize * ksize * sizeof(CudaKernel::Type));
     const auto buffer_offset = 0;
-    checkCudaErrors(cudaMemcpyToSymbol(c_kernel, buffer, 
+    checkCudaErrors(cudaMemcpyToSymbolAsync(c_kernel, buffer, 
         buffer_size, buffer_offset, cudaMemcpyDeviceToDevice));
 }
 
@@ -173,40 +173,4 @@ void cuda_filter_async(CudaImage& dst, const CudaImage& src)
     // Free temporary images
     cuda_free_image(dst_ex);
     cuda_free_image(src_ex);
-}
-
-void cuda_filter(CudaImage& dst, const CudaImage& src)
-{
-    // Launch convolution filtering asynchronously
-    cuda_filter_async(dst, src);
-
-    // Wait for device to finish
-    checkCudaErrors(cudaDeviceSynchronize());
-}
-
-void cuda_filter(CudaImage& dst, const CudaImage& src, const CudaKernel& kernel)
-{
-    // Copy filter kernel to constant memory
-    cuda_set_filter_kernel(kernel);
-
-    // Launch convolution filtering
-    cuda_filter(dst, src);
-}
-
-CudaImage cuda_filter(const CudaImage& src, const CudaKernel& kernel)
-{
-	// Get shape of an image
-	const auto cols = src.cols;
-	const auto rows = src.rows;
-
-	LOG_INFO("Convolution filtering with CUDA of image %lux%lu ksize %lu\n", cols, rows, kernel.size);
-
-	// Allocate image on the device
-	auto dst = cuda_create_image(cols, rows);
-
-	// Perform convolution filtering
-	cuda_filter(dst, src, kernel);
-
-	// Return filtered image
-    return dst;
 }

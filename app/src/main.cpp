@@ -51,7 +51,7 @@ int main(int argc, char** argv)
         auto dst = process_image(src, process_config);
         write_image(dst, dst_path);
 
-        // Show results and wait for key
+        // Show results and wait for keyboard press
         show_image(src, "Source image");
         show_image(dst, "Destination image");
         wait_for_exit();

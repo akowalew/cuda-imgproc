@@ -40,7 +40,7 @@ void cuda_lut_fill_async(CudaLUT& lut, uchar value)
 }
 
 __global__
-void cuda_apply_lut(
+void cuda_apply_lut_kernel(
 	uchar* dst, size_t dpitch,
 	const uchar* src, size_t spitch,
 	size_t cols, size_t rows,
@@ -83,7 +83,7 @@ void cuda_apply_lut_async(CudaImage& dst, const CudaImage& src, const CudaLUT& l
 	const auto dim_grid = dim3(dim_grid_x, dim_grid_y);
 
 	// Launch LUT applying 
-	cuda_apply_lut<<<dim_grid, dim_block>>>(
+	cuda_apply_lut_kernel<<<dim_grid, dim_block>>>(
 		(uchar*)dst.data, dst.pitch,
 		(uchar*)src.data, src.pitch,
 		cols, rows,
@@ -91,25 +91,4 @@ void cuda_apply_lut_async(CudaImage& dst, const CudaImage& src, const CudaLUT& l
 
 	// Check if launch succeeded
 	checkCudaErrors(cudaGetLastError());
-}
-
-void cuda_apply_lut(CudaImage& dst, const CudaImage& src, const CudaLUT& lut)
-{
-	// Launch applying of the LUT
-	cuda_apply_lut_async(dst, src, lut);
-
-	// Wait for device finish
-	checkCudaErrors(cudaDeviceSynchronize());
-}
-
-CudaImage cuda_apply_lut(const CudaImage& src, const CudaLUT& lut)
-{
-	// Allocate image on the device
-	auto dst = cuda_create_image(src.cols, src.rows);
-
-	// Perform LUT application
-	cuda_apply_lut(dst, src, lut);
-
-	// Return image after LUT apply
-	return dst;
 }

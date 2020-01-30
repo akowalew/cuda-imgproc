@@ -37,21 +37,17 @@ void cuda_free_kernel(CudaKernel& kernel)
     checkCudaErrors(cudaFree(kernel.data));
 }
 
-CudaKernel cuda_create_mean_blurr_kernel(size_t ksize)
+void cuda_kernel_mean_blurr(CudaKernel& kernel)
 {
-    LOG_INFO("Creating CUDA mean blurr kernel of size %lux%lu\n", ksize, ksize);
-
-    auto kernel = cuda_create_kernel(ksize);
-
     // Fill kernel with same (meaning) value
+    const auto ksize = kernel.size;
     const auto ksize_sq = (ksize * ksize);
     const auto kernel_v = (1.0f / ksize_sq);
 
+    LOG_INFO("Making CUDA mean blurr kernel of size %lux%lu\n", ksize, ksize);
     LOG_DEBUG("kernel_v: %f\n", kernel_v);
 
     auto vec = std::vector<float>(ksize_sq, kernel_v);
     const auto buffer_size = (ksize_sq * sizeof(CudaKernel::Type));
     checkCudaErrors(cudaMemcpy(kernel.data, vec.data(), buffer_size, cudaMemcpyHostToDevice));
-
-    return kernel;
 }

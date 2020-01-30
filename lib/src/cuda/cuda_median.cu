@@ -155,26 +155,3 @@ void cuda_median_async(CudaImage& dst, const CudaImage& src, CudaMedianKernelSiz
 	// Check for kernel launch errors
 	checkCudaErrors(cudaGetLastError());
 }
-
-void cuda_median(CudaImage& dst, const CudaImage& src, CudaMedianKernelSize ksize)
-{
-	// Launch median filtering asynchronously
-	cuda_median_async(dst, src, ksize);
-
-	// Wait for finish
-	checkCudaErrors(cudaDeviceSynchronize());
-}
-
-CudaImage cuda_median(const CudaImage& src, CudaMedianKernelSize ksize)
-{
-	const auto cols = src.cols;
-	const auto rows = src.rows;
-
-	LOG_INFO("Median filtering with CUDA of image %lux%lu and ksize %lu\n", cols, rows, ksize);
-
-	auto dst = cuda_create_image(cols, rows);
-
-	cuda_median(dst, src, ksize);
-
-	return dst;
-}

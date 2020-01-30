@@ -41,62 +41,6 @@ void cuda_free_image(CudaImage& d_img)
 	checkCudaErrors(cudaFree(d_img.data));
 }
 
-CudaImage cuda_image_clone(const CudaImage& d_src)
-{
-	// Retrieve device image shape
-	const auto cols = d_src.cols;
-	const auto rows = d_src.rows;
-
-	LOG_INFO("Cloning CUDA image of size %lux%lu\n", cols, rows);
-
-	// Allocate image on the device and copy device data
-	auto d_dst = cuda_create_image(cols, rows);
-	cuda_image_copy(d_dst, d_src);
-
-	// Return cloned device image
-	return d_dst;
-}
-
-CudaImage cuda_image_clone_from_host(const CudaHostImage& h_src)
-{
-	// Validate host image shape
-	assert(h_src.cols > 0);
-	assert(h_src.cols > 0);
-
-	// Validate host image properties
-	assert(h_src.type() == CV_8UC1);
-	assert(h_src.isContinuous());
-
-	// Retrieve host image shape
-	const auto cols = (size_t) h_src.cols;
-	const auto rows = (size_t) h_src.rows;
-
-	LOG_INFO("Cloning CUDA image from host of size %lux%lu\n", cols, rows);
-
-	// Allocate image on the device and copy host data
-	auto d_dst = cuda_create_image(cols, rows);
-	cuda_image_copy_from_host(d_dst, h_src);
-
-	// Return cloned host device image
-	return d_dst;
-}
-
-CudaHostImage cuda_image_clone_to_host(const CudaImage& d_src)
-{
-	// Retrieve device image shape
-	const auto cols = d_src.cols;
-	const auto rows = d_src.rows;
-
-	LOG_INFO("Cloning CUDA image to host of size %lux%lu\n", cols, rows);
-
-	// Allocate image on host and copy device data
-	auto h_dst = cuda_create_host_image(cols, rows);
-	cuda_image_copy_to_host(h_dst, d_src);
-
-	// Return cloned host image
-	return h_dst;
-}
-
 void cuda_image_copy(CudaImage& d_dst, const CudaImage& d_src)
 {
 	// Retrieve device image shape

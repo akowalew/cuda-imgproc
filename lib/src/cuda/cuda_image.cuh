@@ -24,13 +24,6 @@ CudaImage cuda_create_image(size_t cols, size_t rows);
 void cuda_free_image(CudaImage& d_img);
 
 
-CudaImage cuda_image_clone(const CudaImage& d_src);
-
-CudaImage cuda_image_clone_from_host(const CudaHostImage& h_src);
-
-CudaHostImage cuda_image_clone_to_host(const CudaImage& d_src);
-
-
 void cuda_image_copy(CudaImage& d_dst, const CudaImage& d_src);
 
 void cuda_image_copy_from_host(CudaImage& d_dst, const CudaHostImage& h_src);

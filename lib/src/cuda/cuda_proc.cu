@@ -37,30 +37,52 @@ static void cuda_reset_device()
 	checkCudaErrors(cudaDeviceReset());
 }
 
-static CudaHostImage cuda_process_host_image(const CudaHostImage& h_src, const ProcessConfig& config)
+static void cuda_process_host_image(CudaHostImage& h_dst, const CudaHostImage& h_src, const ProcessConfig& config)
 {
+	// Ensure correct images size
+	assert(h_dst.cols == h_src.cols);
+	assert(h_dst.rows == h_src.rows);
+
+	const auto cols = h_src.cols;
+	const auto rows = h_src.rows;
+	const auto filter_ksize = config.filter_ksize;
+	const auto median_ksize = config.median_ksize;
+
 	LOG_INFO("Processing host image with CUDA\n");
 
-	// Prepare buffers
-	auto d_src = cuda_image_clone_from_host(h_src);
-	auto d_kernel = cuda_create_mean_blurr_kernel(config.filter_ksize);
+	// Allocate buffers (synchronization point)
+	auto d_kernel = cuda_create_kernel(filter_ksize);
+	auto d_img_a = cuda_create_image(cols, rows);
+	auto d_img_b = cuda_create_image(cols, rows);
+
+	// Copy host data (synchronization point)
+	cuda_image_copy_from_host(d_img_a, h_src);
+
+	// Prepare kernel and set is as current for conv filtering (synchronization point)
+	cuda_kernel_mean_blurr(d_kernel);
+	cuda_set_filter_kernel_async(d_kernel);
 
 	// Do right processing
-	auto d_medianed = cuda_median(d_src, config.median_ksize);
-	auto d_filtered = cuda_filter(d_medianed, d_kernel);
-	auto d_equalized = cuda_equalize_hist(d_filtered);
+	cuda_median_async(d_img_b, d_img_a, median_ksize);
+	cuda_filter_async(d_img_a, d_img_b);
+	cuda_equalize_hist_async(d_img_b, d_img_a);
 	
-	// Copy results
-	auto h_dst = cuda_image_clone_to_host(d_equalized);
+	// Copy device data (synchronization point)
+	cuda_image_copy_to_host(h_dst, d_img_b);
 
-	// Free temporary buffers
-	cuda_free_image(d_equalized);
-	cuda_free_image(d_filtered);
-	cuda_free_image(d_medianed);
+	// Free temporary buffers (synchronization point)
 	cuda_free_kernel(d_kernel);
-	cuda_free_image(d_src);
+	cuda_free_image(d_img_a);
+	cuda_free_image(d_img_b);
+}
 
-	return h_dst;
+CudaHostImage cuda_process_host_image(const CudaHostImage& src, const ProcessConfig& config)
+{
+	auto dst = cuda_create_host_image(src.cols, src.rows);
+
+	cuda_process_host_image(dst, src, config);
+
+	return dst;
 }
 
 //
@@ -89,7 +111,7 @@ void cuda_proc_deinit()
 	cuda_reset_device();
 }
 
-Image cuda_process_image(const Image& img, const ProcessConfig& config)
+Image cuda_process_image(const Image& src, const ProcessConfig& config)
 {
-	return cuda_process_host_image(img, config);
+	return cuda_process_host_image(src, config);
 }

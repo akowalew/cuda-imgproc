@@ -14,12 +14,10 @@ struct CudaKernel
 	size_t size;
 };
 
+
 CudaKernel cuda_create_kernel(size_t ksize);
 
 void cuda_free_kernel(CudaKernel& kernel);
 
 
-void cuda_kernel_fill(CudaKernel& kernel, CudaKernel::Type value);
-
-
-CudaKernel cuda_create_mean_blurr_kernel(size_t ksize);
+void cuda_kernel_mean_blurr(CudaKernel& dst);

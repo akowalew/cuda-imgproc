@@ -97,7 +97,7 @@ uint cuda_calculate_cdf_in_place(uint* buf)
 }
 
 __global__
-void cuda_gen_equalize_lut(uchar* lut, const uint* hist)
+void cuda_gen_equalize_lut_kernel(uchar* lut, const uint* hist)
 {
 	// Generating of equalizing LUT consists of three steps:
 	//  1) Calculating CDF (continuous distribution function) of histogram
@@ -147,31 +147,10 @@ void cuda_gen_equalize_lut_async(CudaLUT& lut, const CudaHistogram& hist)
 	const auto dim_grid = dim3(1, 1);
 
 	// Launch generation of equalizing LUT
-	cuda_gen_equalize_lut<<<dim_grid, dim_block>>>(lut.data, hist.data);
+	cuda_gen_equalize_lut_kernel<<<dim_grid, dim_block>>>(lut.data, hist.data);
 
 	// Check if launch succeeded
 	checkCudaErrors(cudaGetLastError());
-}
-
-void cuda_gen_equalize_lut(CudaLUT& lut, const CudaHistogram& hist)
-{
-	// Launch generation of equalize LUT
-	cuda_gen_equalize_lut_async(lut, hist);
-
-	// Wait for device finish
-	checkCudaErrors(cudaDeviceSynchronize());
-}
-
-CudaLUT cuda_gen_equalize_lut(const CudaHistogram& hist)
-{
-	// Allocate lut on the device
-	auto lut = cuda_create_lut();
-
-	// Perform generation of equalize LUT 
-	cuda_gen_equalize_lut(lut, hist);
-
-	// Return generated LUT
-	return lut;
 }
 
 __global__
@@ -244,27 +223,6 @@ void cuda_calculate_hist_async(CudaHistogram& hist, const CudaImage& img)
 	checkCudaErrors(cudaGetLastError());
 }
 
-void cuda_calculate_hist(CudaHistogram& hist, const CudaImage& img)
-{
-	// Launch histogram calculation
-	cuda_calculate_hist_async(hist, img);
-	
-	// Wait for device finish
-	checkCudaErrors(cudaDeviceSynchronize());
-}
-
-CudaHistogram cuda_calculate_hist(const CudaImage& img)
-{
-	// First, create a new histogram
-	auto hist = cuda_create_histogram();
-
-	// Initialize created histogram to zero and calculate it from image
-	cuda_calculate_hist(hist, img);
-
-	// Return calculated histogram
-	return hist;
-}
-
 void cuda_equalize_hist_async(CudaImage& dst, const CudaImage& src)
 {
 	// Ensure proper images sizes
@@ -275,27 +233,4 @@ void cuda_equalize_hist_async(CudaImage& dst, const CudaImage& src)
 	cuda_calculate_hist_async(g_eq_hist, src);
 	cuda_gen_equalize_lut_async(g_eq_lut, g_eq_hist);
 	cuda_apply_lut_async(dst, src, g_eq_lut);
-}
-
-void cuda_equalize_hist(CudaImage& dst, const CudaImage& src)
-{
-	// Launch histogram equalization
-	cuda_equalize_hist_async(dst, src);
-
-	// Wait for device to finish
-	checkCudaErrors(cudaDeviceSynchronize());
-}
-
-CudaImage cuda_equalize_hist(const CudaImage& src)
-{
-	LOG_INFO("Equalizing histogram with CUDA\n");
-
-	// Allocate image on device
-	auto dst = cuda_create_image(src.cols, src.rows);
-
-	// Perform histogram equalization
-	cuda_equalize_hist(dst, src);
-
-	// Return image with equalized histogram
-	return dst;
 }
