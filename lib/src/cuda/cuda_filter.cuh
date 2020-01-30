@@ -13,6 +13,10 @@
 // Public declarations
 //
 
+void cuda_filter_init();
+
+void cuda_filter_deinit();
+
 void cuda_filter_copy_kernel_from_host_async(const Kernel& kernel);
 
 /**

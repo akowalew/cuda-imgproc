@@ -52,13 +52,13 @@ static void cuda_process_image_async(
 	size_t filter_ksize, size_t median_ksize)
 {
 	// Form subimages from local images, suited to given size
-	auto img_a_sub = cuda_image_sub(g_img_a, cols, rows);
-	auto img_b_sub = cuda_image_sub(g_img_b, cols, rows);
+	auto img_a = cuda_image_sub(g_img_a, cols, rows);
+	auto img_b = cuda_image_sub(g_img_b, cols, rows);
 
 	// Do right processing asynchronously
-	cuda_median_async(img_b_sub, img_a_sub, median_ksize);
-	cuda_filter_async(img_a_sub, img_b_sub, filter_ksize);
-	cuda_equalize_hist_async(img_b_sub, img_a_sub);
+	cuda_median_async(img_b, img_a, median_ksize);
+	cuda_filter_async(img_a, img_b, filter_ksize);
+	cuda_equalize_hist_async(img_b, img_a);
 }
 
 static void cuda_proc_copy_inputs_from_host_async(const Image& h_src, const Kernel& h_filter_kernel)
@@ -71,8 +71,8 @@ static void cuda_proc_copy_inputs_from_host_async(const Image& h_src, const Kern
 static void cuda_proc_copy_outputs_to_host_async(Image& h_dst)
 {
 	// Copy data to host asynchronously
-	auto img_b_sub = cuda_image_sub(g_img_b, h_dst.cols, h_dst.rows);
-	cuda_image_copy_to_host_async(h_dst, img_b_sub);
+	auto img_b = cuda_image_sub(g_img_b, h_dst.cols, h_dst.rows);
+	cuda_image_copy_to_host_async(h_dst, img_b);
 }
 
 static void cuda_process_host_image_async(
@@ -103,6 +103,7 @@ void cuda_proc_init()
 	cuda_set_device(0);
 
 	// Initialize modules
+	cuda_filter_init();
 	cuda_hist_init();
 
 	// Allocate local buffers
@@ -120,6 +121,7 @@ void cuda_proc_deinit()
 
 	// Deinitialize modules
 	cuda_hist_deinit();
+	cuda_filter_deinit();
 
 	// Deinitialize device
 	cuda_reset_device();

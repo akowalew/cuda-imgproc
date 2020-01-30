@@ -22,12 +22,35 @@ static constexpr size_t K = 32;
 //! Maximum size of a kernel
 static constexpr size_t KSizeMax = 32;
 
+static constexpr size_t ColsMax = 3840;
+
+static constexpr size_t RowsMax = 2160;
+
+static constexpr size_t ColsExMax = (((ColsMax + (KSizeMax-1) + (K-1)) / K) * K);
+
+static constexpr size_t RowsExMax = (((RowsMax + (KSizeMax-1) + (K-1)) / K) * K);
+
+CudaImage g_dst_ex;
+CudaImage g_src_ex;
+
 //! Constant array with filter kernel coefficients
 __constant__ float c_kernel[KSizeMax*KSizeMax];
 
 //
 // Private functions
 //
+
+void cuda_filter_init()
+{
+    g_src_ex = cuda_create_image(ColsExMax, RowsExMax);
+    g_dst_ex = cuda_create_image(ColsExMax, RowsExMax);
+}
+
+void cuda_filter_deinit()
+{
+    cuda_free_image(g_dst_ex);
+    cuda_free_image(g_src_ex);
+}
 
 void cuda_filter_copy_kernel_from_host_async(const Kernel& kernel)
 {
@@ -63,7 +86,6 @@ static void filter_kernel(
         {
             const auto src_v = static_cast<float>(src_ex[(i+y)*spitch_ex + (j+x)]);
             const auto kernel_v = c_kernel[i*ksize + j];
-            // printf("%f ", kernel_v);
             acc += src_v * kernel_v;
         }
     }
@@ -91,18 +113,15 @@ void cuda_filter_async(CudaImage& dst, const CudaImage& src, size_t ksize)
 
     const auto cols = src.cols;
     const auto rows = src.rows;
-
-    // Setting default offset
-    const auto offset = (ksize / 2);
     
     // Padding rows and cols size to kernel size granularity
     const auto cols_ex = ((cols + (ksize-1) + (K-1)) / K) * K;
     const auto rows_ex = ((rows + (ksize-1) + (K-1)) / K) * K;
     
-    // Allocate extended images buffers
-    auto src_ex = cuda_create_image(cols_ex, rows_ex);
-    auto dst_ex = cuda_create_image(cols_ex, rows_ex);
-    
+    // Obtain extended images buffers
+    const auto dst_ex = cuda_image_sub(g_dst_ex, cols_ex, rows_ex);
+    const auto src_ex = cuda_image_sub(g_src_ex, cols_ex, rows_ex);
+
     const auto sdata = (uchar*) src.data;
     const auto ddata = (uchar*) dst.data;
     const auto spitch = src.pitch;
@@ -112,8 +131,11 @@ void cuda_filter_async(CudaImage& dst, const CudaImage& src, size_t ksize)
     const auto dpitch_ex = dst_ex.pitch;
     const auto spitch_ex = src_ex.pitch;
 
-    // Copy source buffer into extended source buffer
-    checkCudaErrors(cudaMemcpy2D(
+    // Offset from begin of extended image buffer to "right" image
+    const auto offset = (ksize / 2);
+
+    // Copy source buffer into extended source buffer asynchronously
+    checkCudaErrors(cudaMemcpy2DAsync(
         sdata_ex + offset*spitch_ex + offset*sizeof(uchar), spitch_ex, 
         sdata, spitch, 
         cols*sizeof(uchar), rows, 
@@ -138,8 +160,6 @@ void cuda_filter_async(CudaImage& dst, const CudaImage& src, size_t ksize)
     checkCudaErrors(cudaMemset2D(
         sdata_ex + (offset+rows)*spitch_ex, spitch_ex, 0,
         cols_ex*sizeof(uchar), (rows_ex-rows-offset)));
-
-    checkCudaErrors(cudaDeviceSynchronize());
 
     // Dimensions of each block (in threads)
     const auto dim_block_x = K;
@@ -166,13 +186,9 @@ void cuda_filter_async(CudaImage& dst, const CudaImage& src, size_t ksize)
     checkCudaErrors(cudaGetLastError());
     
     // Copy results to destination buffer
-    checkCudaErrors(cudaMemcpy2D(
+    checkCudaErrors(cudaMemcpy2DAsync(
         ddata, dpitch, 
         ddata_ex + offset*dpitch_ex + offset*sizeof(uchar), dpitch_ex, 
         cols*sizeof(uchar), rows, 
         cudaMemcpyDeviceToDevice));
-
-    // Free temporary images
-    cuda_free_image(dst_ex);
-    cuda_free_image(src_ex);
 }
