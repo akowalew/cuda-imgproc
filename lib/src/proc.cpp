@@ -10,6 +10,8 @@
 
 #include "log.hpp"
 
+#define BUILD_VERSION_CUDA
+
 #ifdef BUILD_VERSION_CUDA
 # include "cuda_proc.cuh"
 #else

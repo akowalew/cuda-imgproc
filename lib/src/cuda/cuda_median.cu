@@ -18,7 +18,7 @@
 
 constexpr int K = 32;
 
-constexpr int KSizeMax = 8;
+constexpr int Kern_Max = 7;
 
 //
 // Private functions
@@ -37,7 +37,7 @@ static void cuda_median_kernel(
 	// Nie można dynamicznie alokować w ten sposób. Alokujemy maksa.
 	// max ksize = 7. 14 = 2*7;
 	// (32+14)^2 to circa 2.5 kiB. Mamy lekko 16 kiB pamieci wspoldzielonej
-	__shared__ uchar s_pixbuf[(K+14) * (K+14)];
+	__shared__ uchar s_pixbuf[(K+(2* Kern_Max)) * (K+ (2 * Kern_Max))];
 	uchar hist[256] = {0};
 	
 	/*
@@ -69,7 +69,7 @@ static void cuda_median_kernel(
 					break;	
 				}
 
-				s_pixbuf[(yy * (K + 14)) + x_] =  src[y__*spitch + x];		
+				s_pixbuf[(yy * (K + (2 * Kern_Max))) + x_] =  src[y__*spitch + x];
 			}
 		}
 	}
@@ -94,7 +94,7 @@ static void cuda_median_kernel(
 	{
 		for(int xx = threadIdx.x; xx <= x_ + ksize; xx++)
 		{
-			hist[s_pixbuf[((yy * (K + 14)) + xx)]]++;
+			hist[s_pixbuf[((yy * (K + (2 * Kern_Max))) + xx)]]++;
 		}
 	}
 
@@ -122,11 +122,66 @@ static void cuda_median_kernel(
 	dst[y*dpitch + x] = pixel;
 }
 
+//	/*
+__global__ static void  cuda_median_kernel_0(
+	uchar* dst, size_t dpitch,
+	const uchar* src, size_t spitch,
+	size_t cols, size_t rows, size_t ksize)
+{
+
+
+	auto adr_d = [dpitch](int x, int y) {
+		return((int)((y * dpitch) + x));
+	};
+
+	auto adr_s = [spitch](int x, int y) {
+		return((int)((y * spitch) + x));
+	};
+
+
+	//wyzeruj histogram
+	unsigned char hist[256];
+	memset(hist, 0, 256);
+
+	int x = blockIdx.x * K + threadIdx.x + ksize;
+	int y = blockIdx.y * K + threadIdx.y + ksize;
+	if (y > rows - ksize) return;
+	if (x > cols - ksize) return;
+
+	//napelnij histogram
+	for (int yy = y - ksize; yy <= y + ksize; yy++) for (int xx = x - ksize; xx <= x + ksize; xx++)
+		hist[src[adr_s(xx, yy)]]++;
+
+	//znajdz odpowiedniego pixela
+			//policz ile pixelai trzeba odrzucic
+
+	int counter = ksize;
+	counter = ((counter * 2) + 1);
+	counter *= counter;
+	counter /= 2;
+	//szukaj pixela w histogramie
+	unsigned char pixel = 0;
+	do {
+		counter -= hist[pixel];
+		if (counter < 0) break;
+		pixel++;
+	} while (pixel != 255);
+	//zapisz pixela;
+	dst[adr_d(x, y)] = pixel;
+}
+
+//	*/
+
+
+
 void cuda_median_async(CudaImage& dst, const CudaImage& src, CudaMedianKernelSize ksize)
 {
 	// Ensure same sizes of images
 	assert(src.cols == dst.cols);
 	assert(src.rows == dst.rows);
+	assert(ksize <= Kern_Max);
+
+
 
 	const auto cols = src.cols;
 	const auto rows = src.rows;
@@ -147,6 +202,7 @@ void cuda_median_async(CudaImage& dst, const CudaImage& src, CudaMedianKernelSiz
 	const auto dim_block = dim3(dim_block_x, dim_block_y);
 
 	// Launch median filtering kernel
+	//	Add '_0' to launch previous kernel
 	cuda_median_kernel<<<dim_block, dim_grid>>>(
 		(uchar*)dst.data, dst.pitch,
 		(const uchar*)src.data, src.pitch,

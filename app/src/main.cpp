@@ -1,4 +1,4 @@
-///////////////////////////////////////////////////////////////////////////////
+﻿///////////////////////////////////////////////////////////////////////////////
 // main.cpp
 //
 // Contains implementation of entry point to `process-image` application
@@ -27,21 +27,57 @@
  */
 int main(int argc, char** argv)
 {
-    if(argc < 5)
+    /*
+	if(argc < 5)
     {
         printf("Usage: ./process-image <src_path> <dst_path> <median_ksize> <filter_ksize>\n");
         return 1;
     }
+	*/
+
+	//Wolę być zintegrowany z Visual studio.
+	//Nie wiem czy to jest prawidłowa metoda trzymania 2 wersji, pewnie powinniśmy mieć 2 branche.
+
+
+	if(argc < 5)
+    {
+        printf("Usage: ./process-image <src_path> <dst_path> <median_ksize> <filter_ksize>\n");
+       // return 1;
+    }
+	/*
+	const char * src_path;
+	const char * dst_path;	
+	const ProcessConfig process_config;*/
+		
+
+	
+
 
     try
     {
-        // Parse CLI arguments
+		/*
+
+		Super uzycie auto;/
+
+		// Parse CLI arguments
         const auto src_path = argv[1];
         const auto dst_path = argv[2];
         const auto process_config = ProcessConfig {
             MedianKernelSize{std::stoul(argv[3])},
             FilterKernelSize{std::stoul(argv[4])}
         };
+		*/
+
+		const auto src_path = "C:/Users/lab/Desktop/RIM/Projekt_/Projekt_/assets/sample.jpg";
+		const auto dst_path = "C:/Users/lab/Desktop/RIM/Projekt_/out.jpg";
+		const auto process_config = ProcessConfig{
+			MedianKernelSize{(unsigned long) 5},
+			FilterKernelSize{(unsigned long) 5}
+		};
+
+
+
+
 
         // Initialize processing library
         proc_init();
@@ -54,7 +90,7 @@ int main(int argc, char** argv)
         // Show results and wait for key
         show_image(src, "Source image");
         show_image(dst, "Destination image");
-        wait_for_exit();
+       // wait_for_exit();
 
         // Free memory
         free_image(dst);
