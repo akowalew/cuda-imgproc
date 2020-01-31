@@ -1,0 +1,27 @@
+2020-01-31 05:05:29
+Running bin/imgproc-bench
+Run on (6 X 4300 MHz CPU s)
+CPU Caches:
+  L1 Data 32K (x6)
+  L1 Instruction 32K (x6)
+  L2 Unified 256K (x6)
+  L3 Unified 9216K (x1)
+name,iterations,real_time,cpu_time,time_unit,bytes_per_second,items_per_second,label,error_occurred,error_message
+"cuda_filter/320/240/3/manual_time",33050,20754.5,26695.2,ns,,,,,
+"cuda_filter/640/480/3/manual_time",15000,46753.9,53183.3,ns,,,,,
+"cuda_filter/1024/768/3/manual_time",6095,117484,123734,ns,,,,,
+"cuda_filter/1920/1080/3/manual_time",2489,283225,291784,ns,,,,,
+"cuda_filter/2560/1440/3/manual_time",1454,480774,489549,ns,,,,,
+"cuda_filter/3840/2160/3/manual_time",663,1.06271e+06,1.0803e+06,ns,,,,,
+"cuda_filter/320/240/7/manual_time",22305,31475.4,37564.9,ns,,,,,
+"cuda_filter/640/480/7/manual_time",8495,82144.6,89467.3,ns,,,,,
+"cuda_filter/1024/768/7/manual_time",3512,199372,206711,ns,,,,,
+"cuda_filter/1920/1080/7/manual_time",1366,513100,528235,ns,,,,,
+"cuda_filter/2560/1440/7/manual_time",783,894147,915646,ns,,,,,
+"cuda_filter/3840/2160/7/manual_time",349,2.01086e+06,2.07068e+06,ns,,,,,
+"cuda_filter/320/240/15/manual_time",9936,69301.3,75729.3,ns,,,,,
+"cuda_filter/640/480/15/manual_time",3339,210942,220595,ns,,,,,
+"cuda_filter/1024/768/15/manual_time",1310,533660,549519,ns,,,,,
+"cuda_filter/1920/1080/15/manual_time",505,1.38682e+06,1.41472e+06,ns,,,,,
+"cuda_filter/2560/1440/15/manual_time",287,2.48885e+06,2.51348e+06,ns,,,,,
+"cuda_filter/3840/2160/15/manual_time",120,5.58737e+06,5.6085e+06,ns,,,,,
