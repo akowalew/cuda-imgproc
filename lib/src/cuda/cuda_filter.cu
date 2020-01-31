@@ -73,24 +73,31 @@ void cuda_filter_copy_kernel_from_host_async(const Kernel& kernel)
 }
 
 __global__ static void filter_kernel(
-    uchar* dst_ex, size_t dpitch_ex,
+    uchar* dst_ex, size_t dpitch,
     const uchar* src_ex, size_t spitch_ex,  
     size_t ksize)
 {
-    const int x = threadIdx.x + blockIdx.x*blockDim.x;
-    const int y = threadIdx.y + blockIdx.y*blockDim.y;
+//     const int x = threadIdx.x + blockIdx.x*blockDim.x;
+//     const int y = threadIdx.y + blockIdx.y*blockDim.y;
     
+    // Copying data to shared memory
+    for(int yy = threadIdx.y; yy < K+ksize-1; yy += K)
+        for(int xx = threadIdx.x; xx < K+ksize-1; xx += K)
+            // TODO: sprawdzic mnozenie indeksow przez staly i zmienny rozmiar - jawnie
+            // TODO: sprawdzic uzmiennienie blockDim*blockidx
+            tile[yy][xx] = static_cast<float>(src_ex[(yy + blockIdx.y*blockDim.y)*spitch_ex + (xx + blockIdx.x*blockDim.x)]); 
+        
+    __syncthreads();
+    
+    // Computing the convolution for tile
     float acc = 0.0f;
-    for(int i = 0; i < ksize; ++i)
-    {
-        for(int j = 0; j < ksize; ++j)
-        {
-            const auto src_v = static_cast<float>(src_ex[(i+y)*spitch_ex + (j+x)]);
-            const auto kernel_v = c_kernel[i*ksize + j]; // TODO: test KSizeMax or ksize
-            acc += src_v * kernel_v;
-        }
-    }
-
+    for(int i=0; i<ksize; ++i)
+        for(int j=0; j<ksize; ++j)
+            // TODO: test KSizeMax or ksize in c_kernel size
+            acc += c_kernel[i*ksize + j] * tile[threadIdx.y + i][threadIdx.x + j];
+        
+    __syncthreads();
+        
     if(acc > 255.0f)
     {
         acc = 255.0f;
@@ -101,7 +108,8 @@ __global__ static void filter_kernel(
     }
     
     acc += 0.5f;
-    dst_ex[(y)*dpitch_ex + (x)] = static_cast<uchar>(acc);
+//     dst_ex[(y)*dpitch_ex + (x)] = static_cast<uchar>(acc);
+    dst_ex[(threadIdx.y + blockIdx.y*blockDim.y)*dpitch + (threadIdx.x + blockIdx.x*blockDim.x)] = static_cast<uchar>(acc);
 }
  
 void cuda_filter_async(CudaImage& dst, const CudaImage& src, size_t ksize)
