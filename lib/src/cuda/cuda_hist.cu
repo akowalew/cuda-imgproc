@@ -77,10 +77,10 @@ __device__
 uint cuda_calculate_cdf_in_place(uint* buf)
 {
 	// We need some variable to remember minimal CDF value 
-	uint cdf_min = 0;
+	uint cdf_min = buf[0];
 
 	// We've got first CDF value, so we're starting directly from the second
-    for(auto i = 1; i < CudaHistogram::Size; ++i)
+    for(auto i = 1; i < 256; ++i)
     {
     	// Calculate next CDF value
         buf[i] += buf[i-1];
@@ -107,7 +107,7 @@ void cuda_gen_equalize_lut_kernel(uchar* lut, const uint* hist)
 
     // We will need some temporary buffer for CDF values and CDF min
     // We will use same buffer both for CDF and for histogram caching
-	__shared__ uint s_buf[CudaHistogram::Size];
+	__shared__ uint s_buf[256];
     __shared__ uint s_cdf_min;
 
     // Cache histogram values into shared memory
@@ -127,12 +127,11 @@ void cuda_gen_equalize_lut_kernel(uchar* lut, const uint* hist)
 	__syncthreads();
 
     // Calculate LUT value and store it
-    // where: 
-    //  - (CudaHistogram::Size-1) is both maximum value of image and index of last CDF value
-    //  - s_buf[CudaHistogram::Size-1] is last CDF value -> number of elements in the image
-    lut[threadIdx.x] = 
-    	(((s_buf[threadIdx.x] - s_cdf_min) * (CudaHistogram::Size-1)) 
-    		/ (s_buf[CudaHistogram::Size-1] - s_cdf_min));
+	const auto cdf_v = s_buf[threadIdx.x];
+	const long unsigned int diff = (cdf_v < s_cdf_min) ? 0 : (cdf_v - s_cdf_min);
+	const auto num = (diff * 255);
+	const auto den = (s_buf[255] - s_cdf_min);
+    lut[threadIdx.x] = (num / den);
 }
 
 void cuda_gen_equalize_lut_async(CudaLUT& lut, const CudaHistogram& hist)
@@ -143,7 +142,7 @@ void cuda_gen_equalize_lut_async(CudaLUT& lut, const CudaHistogram& hist)
 		"Sizes of LUT and Histograms should be the same");
 
 	// Use only one, linear, const sized block
-	const auto dim_block = dim3(CudaLUT::Size);
+	const auto dim_block = dim3(256);
 	const auto dim_grid = dim3(1, 1);
 
 	// Launch generation of equalizing LUT
@@ -164,7 +163,7 @@ void cuda_calculate_hist_kernel(
 
 	// Initialize shared histogram with zeros
 	const auto tid = (threadIdx.y*blockDim.x + threadIdx.x);
-	if(tid < CudaHistogram::Size)
+	if(tid < 256)
 	{
 		s_hist[tid] = 0;
 	}
@@ -188,7 +187,7 @@ void cuda_calculate_hist_kernel(
 	__syncthreads();
 
 	// Add local histogram to the global one atomically
-	if(tid < CudaHistogram::Size)
+	if(tid < 256)
 	{
 		atomicAdd(&hist[tid], s_hist[tid]);
 	}
