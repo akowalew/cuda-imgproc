@@ -11,8 +11,8 @@
 
 #include "cuda_bench_common.cuh"
 
-//! Performs benchmarking of equalize_hist function
-static void equalize_hist(benchmark::State& state)
+//! Performs benchmarking of cuda_equalize_hist function
+static void cuda_equalize_hist(benchmark::State& state)
 {
     const size_t cols = state.range(0);
     const size_t rows = state.range(1);
@@ -30,12 +30,12 @@ static void equalize_hist(benchmark::State& state)
     cuda_proc_deinit();
 }
 
-BENCHMARK(equalize_hist)
+BENCHMARK(cuda_equalize_hist)
     ->UseManualTime()
     ->Apply(get_resolutions);
 
-//! Performs benchmarking of calculate_hist function
-static void calculate_hist(benchmark::State& state)
+//! Performs benchmarking of cuda_calculate_hist function
+static void cuda_calculate_hist(benchmark::State& state)
 {
     const size_t cols = state.range(0);
     const size_t rows = state.range(1);
@@ -53,12 +53,12 @@ static void calculate_hist(benchmark::State& state)
     cuda_proc_deinit();
 }
 
-BENCHMARK(calculate_hist)
+BENCHMARK(cuda_calculate_hist)
     ->UseManualTime()
     ->Apply(get_resolutions);
 
-//! Performs benchmarking of gen_equalize_lut function
-static void gen_equalize_lut(benchmark::State& state)
+//! Performs benchmarking of cuda_gen_equalize_lut function
+static void cuda_gen_equalize_lut(benchmark::State& state)
 {
     cuda_proc_init();
     auto lut = cuda_create_lut();
@@ -73,5 +73,5 @@ static void gen_equalize_lut(benchmark::State& state)
     cuda_proc_deinit();
 }
 
-BENCHMARK(gen_equalize_lut)
+BENCHMARK(cuda_gen_equalize_lut)
     ->UseManualTime();
