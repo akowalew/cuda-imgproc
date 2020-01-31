@@ -12,6 +12,8 @@
 
 #include "log.hpp"
 
+#include "cuda_common.cuh"
+
 //
 // Private globals
 //
@@ -22,12 +24,10 @@ static constexpr size_t K = 32;
 //! Maximum size of a kernel
 static constexpr size_t KSizeMax = 32;
 
-static constexpr size_t ColsMax = 3840;
-
-static constexpr size_t RowsMax = 2160;
-
+//! Maximum number of columns in extended images
 static constexpr size_t ColsExMax = (((ColsMax + (KSizeMax-1) + (K-1)) / K) * K);
 
+//! Maximum number of rows in exyen
 static constexpr size_t RowsExMax = (((RowsMax + (KSizeMax-1) + (K-1)) / K) * K);
 
 CudaImage g_dst_ex;

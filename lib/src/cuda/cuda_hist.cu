@@ -232,5 +232,6 @@ void cuda_equalize_hist_async(CudaImage& dst, const CudaImage& src)
 	// Launch histogram equalization sequence
 	cuda_calculate_hist_async(g_eq_hist, src);
 	cuda_gen_equalize_lut_async(g_eq_lut, g_eq_hist);
-	cuda_apply_lut_async(dst, src, g_eq_lut);
+	cuda_lut_set_async(g_eq_lut);
+	cuda_apply_lut_async(dst, src);
 }

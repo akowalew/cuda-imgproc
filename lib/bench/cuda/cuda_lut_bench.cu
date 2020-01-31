@@ -22,8 +22,10 @@ static void cuda_apply_lut(benchmark::State& state)
     auto dst = cuda_create_image(cols, rows);
     auto lut = cuda_create_lut();
 
-    cuda_benchmark(state, [&dst, &src, &lut] {
-        cuda_apply_lut_async(dst, src, lut);
+    cuda_lut_set_async(lut);
+
+    cuda_benchmark(state, [&dst, &src] {
+        cuda_apply_lut_async(dst, src);
     });
 
     cuda_free_lut(lut);

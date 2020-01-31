@@ -12,6 +12,7 @@
 
 #include <helper_cuda.h>
 
+#include "cuda_common.cuh"
 #include "cuda_filter.cuh"
 #include "cuda_hist.cuh"
 #include "cuda_image.cuh"
@@ -22,9 +23,6 @@
 //
 // Private members
 //
-
-static constexpr auto ColsMax = 3840;
-static constexpr auto RowsMax = 2160;
 
 CudaImage g_img_a;
 CudaImage g_img_b;

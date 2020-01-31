@@ -17,6 +17,9 @@
 //! Number of threads in block in each dimension
 constexpr auto K = 32;
 
+//! Constant lookup-table buffer used in `apply_lut`
+__constant__ uchar c_lut[CudaLUT::Size];
+
 CudaLUT cuda_create_lut()
 {
 	// Allocate LUT on the device
@@ -43,8 +46,7 @@ __global__
 void cuda_apply_lut_kernel(
 	uchar* dst, size_t dpitch,
 	const uchar* src, size_t spitch,
-	size_t cols, size_t rows,
-	const uchar* lut)
+	size_t cols, size_t rows)
 {
     // Get position of that thread in terms of the image
     const auto y = (threadIdx.y + blockDim.y*blockIdx.y);
@@ -58,11 +60,11 @@ void cuda_apply_lut_kernel(
 
     // Apply LUT on src image pixel and store result into dst image pixel
     const auto src_v = src[x + y*spitch];
-    const auto lut_v = lut[src_v];
+    const auto lut_v = c_lut[src_v];
     dst[x + y*dpitch] = lut_v;
 }
 
-void cuda_apply_lut_async(CudaImage& dst, const CudaImage& src, const CudaLUT& lut)
+void cuda_apply_lut_async(CudaImage& dst, const CudaImage& src)
 {
 	// Ensure proper images size
 	assert(src.cols == dst.cols);
@@ -86,9 +88,16 @@ void cuda_apply_lut_async(CudaImage& dst, const CudaImage& src, const CudaLUT& l
 	cuda_apply_lut_kernel<<<dim_grid, dim_block>>>(
 		(uchar*)dst.data, dst.pitch,
 		(uchar*)src.data, src.pitch,
-		cols, rows,
-		lut.data);
+		cols, rows);
 
 	// Check if launch succeeded
 	checkCudaErrors(cudaGetLastError());
+}
+
+void cuda_lut_set_async(const CudaLUT& lut)
+{
+	const auto count = (CudaLUT::Size * sizeof(uchar));
+	const auto offset = 0;
+	checkCudaErrors(cudaMemcpyToSymbolAsync(c_lut, lut.data, count, 
+		offset, cudaMemcpyDeviceToDevice));
 }

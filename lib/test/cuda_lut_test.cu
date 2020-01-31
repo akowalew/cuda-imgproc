@@ -23,7 +23,8 @@ static void cuda_apply_lut_filled_test(
 	cuda_image_fill_async(d_dst, dst_v);
 	cuda_image_fill_async(src, src_v);
 	cuda_lut_fill_async(lut, lut_v);
-    cuda_apply_lut_async(d_dst, src, lut);
+    cuda_lut_set_async(lut);
+    cuda_apply_lut_async(d_dst, src);
     cuda_image_copy_to_host_async(h_dst, d_dst);
     checkCudaErrors(cudaDeviceSynchronize());
 

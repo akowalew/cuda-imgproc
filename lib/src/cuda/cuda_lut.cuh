@@ -26,4 +26,6 @@ void cuda_free_lut(CudaLUT& lut);
 void cuda_lut_fill_async(CudaLUT& lut, uchar value);
 
 
-void cuda_apply_lut_async(CudaImage& dst, const CudaImage& src, const CudaLUT& lut);
+void cuda_lut_set_async(const CudaLUT& lut);
+
+void cuda_apply_lut_async(CudaImage& dst, const CudaImage& src);
