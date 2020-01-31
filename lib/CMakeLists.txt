@@ -108,6 +108,7 @@ target_compile_options(imgproc
 if(BUILD_BENCHMARKING)
     list(APPEND imgproc-bench_SOURCES
         bench/bench_main.cpp
+        bench/proc_bench.cpp
     )
 
     if(BUILD_VERSION STREQUAL CUDA)
