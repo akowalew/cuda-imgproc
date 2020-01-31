@@ -8,7 +8,6 @@
 
 #include <string>
 
-#include "debug.hpp"
 #include "image.hpp"
 #include "reader.hpp"
 #include "proc.hpp"
@@ -50,11 +49,6 @@ int main(int argc, char** argv)
         auto src = read_image(src_path);
         auto dst = process_image(src, filter_kernel, median_ksize);
         write_image(dst, dst_path);
-
-        // Show results and wait for keyboard press
-        show_image(src, "Source image");
-        show_image(dst, "Destination image");
-        wait_for_exit();
 
         // Free memory
         free_image(dst);

@@ -10,7 +10,6 @@
 
 # Include sources common for all build versions
 list(APPEND imgproc_SOURCES
-    src/debug.cpp
     src/image.cpp
     src/kernel.cpp
     src/proc.cpp

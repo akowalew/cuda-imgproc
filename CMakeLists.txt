@@ -14,7 +14,6 @@ project(cuda-imgproc VERSION 0.1.0 LANGUAGES CXX)
 option(BUILD_APP "Whether to build process-image app or not" ON)
 option(BUILD_LIB "Whether to build imgproc lib or not" ON)
 option(BUILD_TESTING "Whether to build tests or not" ON)
-option(BUILD_DEBUG "Whether to print debug information" ON)
 option(BUILD_BENCHMARKING "Whether to build benchmarks or not" ON)
 option(BUILD_CONAN "Whether to use Conan package manager or not" ON)
 option(BUILD_EXTERN "Whether to build extern libs or not" ON)
@@ -38,10 +37,6 @@ endif()
 if(BUILD_TESTING)
     # If unit-tests needed, enable CMake testing suite
 	enable_testing()
-endif()
-
-if(BUILD_DEBUG)
-    add_definitions(-DDEBUG)
 endif()
 
 # Set desired log level across the project
