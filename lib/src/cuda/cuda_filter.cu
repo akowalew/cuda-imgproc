@@ -21,8 +21,8 @@
 //! Number of threads in block
 static constexpr size_t K = 32;
 
-//! Maximum size of a kernel
-static constexpr size_t KSizeMax = 32;
+//! Maximum size of a kernel is 16, over this size it's certain that FFT approach is faster
+static constexpr size_t KSizeMax = 16;
 
 //! Maximum number of columns in extended images
 static constexpr size_t ColsExMax = (((ColsMax + (KSizeMax-1) + (K-1)) / K) * K);
@@ -30,11 +30,15 @@ static constexpr size_t ColsExMax = (((ColsMax + (KSizeMax-1) + (K-1)) / K) * K)
 //! Maximum number of rows in exyen
 static constexpr size_t RowsExMax = (((RowsMax + (KSizeMax-1) + (K-1)) / K) * K);
 
-CudaImage g_dst_ex;
+static constexpr size_t SharedTileSize = K + KSizeMax - 1;
+
 CudaImage g_src_ex;
 
 //! Constant array with filter kernel coefficients
 __constant__ float c_kernel[KSizeMax*KSizeMax];
+
+//! Shared array for tile buffering
+__shared__ float tile[SharedTileSize][SharedTileSize];
 
 //
 // Private functions
@@ -43,12 +47,10 @@ __constant__ float c_kernel[KSizeMax*KSizeMax];
 void cuda_filter_init()
 {
     g_src_ex = cuda_create_image(ColsExMax, RowsExMax);
-    g_dst_ex = cuda_create_image(ColsExMax, RowsExMax);
 }
 
 void cuda_filter_deinit()
 {
-    cuda_free_image(g_dst_ex);
     cuda_free_image(g_src_ex);
 }
 
@@ -70,22 +72,21 @@ void cuda_filter_copy_kernel_from_host_async(const Kernel& kernel)
         buffer_size, buffer_offset, cudaMemcpyHostToDevice));
 }
 
-__global__ 
-static void filter_kernel(
+__global__ static void filter_kernel(
     uchar* dst_ex, size_t dpitch_ex,
     const uchar* src_ex, size_t spitch_ex,  
     size_t ksize)
 {
     const int x = threadIdx.x + blockIdx.x*blockDim.x;
     const int y = threadIdx.y + blockIdx.y*blockDim.y;
-
+    
     float acc = 0.0f;
     for(int i = 0; i < ksize; ++i)
     {
         for(int j = 0; j < ksize; ++j)
         {
             const auto src_v = static_cast<float>(src_ex[(i+y)*spitch_ex + (j+x)]);
-            const auto kernel_v = c_kernel[i*ksize + j];
+            const auto kernel_v = c_kernel[i*ksize + j]; // TODO: test KSizeMax or ksize
             acc += src_v * kernel_v;
         }
     }
@@ -100,9 +101,7 @@ static void filter_kernel(
     }
     
     acc += 0.5f;
-    
-    const auto offset = (ksize / 2);
-    dst_ex[(y+offset)*dpitch_ex + (x+offset)] = static_cast<uchar>(acc);
+    dst_ex[(y)*dpitch_ex + (x)] = static_cast<uchar>(acc);
 }
  
 void cuda_filter_async(CudaImage& dst, const CudaImage& src, size_t ksize)
@@ -119,16 +118,13 @@ void cuda_filter_async(CudaImage& dst, const CudaImage& src, size_t ksize)
     const auto rows_ex = ((rows + (ksize-1) + (K-1)) / K) * K;
     
     // Obtain extended images buffers
-    const auto dst_ex = cuda_image_sub(g_dst_ex, cols_ex, rows_ex);
     const auto src_ex = cuda_image_sub(g_src_ex, cols_ex, rows_ex);
 
     const auto sdata = (uchar*) src.data;
     const auto ddata = (uchar*) dst.data;
     const auto spitch = src.pitch;
     const auto dpitch = dst.pitch;
-    const auto ddata_ex = (uchar*) dst_ex.data;
     const auto sdata_ex = (uchar*) src_ex.data;
-    const auto dpitch_ex = dst_ex.pitch;
     const auto spitch_ex = src_ex.pitch;
 
     // Offset from begin of extended image buffer to "right" image
@@ -178,17 +174,10 @@ void cuda_filter_async(CudaImage& dst, const CudaImage& src, size_t ksize)
 
     // Launch filtering kernel
     filter_kernel<<<dim_grid, dim_block>>>(
-        ddata_ex, dpitch_ex, 
+        ddata, dpitch, 
         sdata_ex, spitch_ex, 
         ksize);
 
     // Check for kernel launch errors
     checkCudaErrors(cudaGetLastError());
-    
-    // Copy results to destination buffer
-    checkCudaErrors(cudaMemcpy2DAsync(
-        ddata, dpitch, 
-        ddata_ex + offset*dpitch_ex + offset*sizeof(uchar), dpitch_ex, 
-        cols*sizeof(uchar), rows, 
-        cudaMemcpyDeviceToDevice));
 }
