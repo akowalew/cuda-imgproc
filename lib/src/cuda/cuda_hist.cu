@@ -135,9 +135,9 @@ void cuda_gen_equalize_lut_kernel(uchar* lut, const uint* hist)
 	}
 	else
 	{
-		const long unsigned int diff = (cdf_v - cdf_min);
+		const long unsigned int diff = (cdf_v - s_cdf_min);
 		const auto num = (diff * 255);
-		const auto den = (s_buf[255] - cdf_min);
+		const auto den = (s_buf[255] - s_cdf_min);
 	    lut[threadIdx.x] = (num / den);
 	}
 }

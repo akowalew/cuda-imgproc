@@ -117,6 +117,10 @@ if(BUILD_BENCHMARKING)
             bench/cuda/cuda_lut_bench.cu
             bench/cuda/cuda_median_bench.cu
         )
+    else()
+        list(APPEND imgproc-bench_SOURCES
+            bench/cpu/cpu_hist_bench.cpp
+        )
     endif()
 
     add_executable(imgproc-bench
