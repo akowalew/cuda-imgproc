@@ -48,20 +48,6 @@ static void median_test_arguments(benchmark::internal::Benchmark* benchmark)
     benchmark->Args({1920, 1080, 7});
     benchmark->Args({2560, 1440, 7});
     benchmark->Args({3840, 2160, 7});
-
-    // benchmark->Args({320, 240, 11}); 
-    // benchmark->Args({640, 480, 11});
-    // benchmark->Args({1024, 768, 11});
-    // benchmark->Args({1920, 1080, 11});
-    // benchmark->Args({2560, 1440, 11});
-    // benchmark->Args({3840, 2160, 11});
-
-    // benchmark->Args({320, 240, 33}); 
-    // benchmark->Args({640, 480, 33});
-    // benchmark->Args({1024, 768, 33});
-    // benchmark->Args({1920, 1080, 33});
-    // benchmark->Args({2560, 1440, 33});
-    // benchmark->Args({3840, 2160, 33});
 }
 
 //! Performs benchmarking of cuda_median function

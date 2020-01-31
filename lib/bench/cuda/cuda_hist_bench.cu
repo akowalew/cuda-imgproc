@@ -11,6 +11,16 @@
 
 #include "cuda_bench_common.cuh"
 
+static void get_resolutions(benchmark::internal::Benchmark* benchmark)
+{
+    benchmark->Args({320, 240}); 
+    benchmark->Args({640, 480});
+    benchmark->Args({1024, 768});
+    benchmark->Args({1920, 1080});
+    benchmark->Args({2560, 1440});
+    benchmark->Args({3840, 2160});
+}
+
 //! Performs benchmarking of cuda_equalize_hist function
 static void cuda_equalize_hist(benchmark::State& state)
 {

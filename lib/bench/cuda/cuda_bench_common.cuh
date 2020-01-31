@@ -38,27 +38,3 @@ static void cuda_benchmark(benchmark::State& state, TFunc&& func)
     checkCudaErrors(cudaEventDestroy(stop));
     checkCudaErrors(cudaEventDestroy(start));
 }
-
-/**
- * @brief Provides to benchmark common resolutions when testing image algorithms
- * @details To use them in the benchmark then, you have to type:
- * ```c++
- *  static void some_benchmark(benchmark::State& state)
- *  {
- *      const auto cols = state.range(0);
- *      const auto rows = state.range(1);
- *      ... 
- *  }      
- * ```
- * 
- * @param benchmark benchmark instance
- */
-static void get_resolutions(benchmark::internal::Benchmark* benchmark)
-{
-    benchmark->Args({320, 240}); 
-    benchmark->Args({640, 480});
-    benchmark->Args({1024, 768});
-    benchmark->Args({1920, 1080});
-    benchmark->Args({2560, 1440});
-    benchmark->Args({3840, 2160});
-}
