@@ -35,4 +35,4 @@ void cpu_proc_deinit();
  * 
  * @return processing result
  */
-Image cpu_process_image(const Image& img, const ProcessConfig& config);
+Image cpu_process_image(const Image& img, const Kernel& kernel, size_t median_ksize);

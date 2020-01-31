@@ -14,27 +14,6 @@
 #include "log.hpp"
 
 //
-// Private functions
-//
-
-static Image cpu_process_host_image(const Image& src, const ProcessConfig& config)
-{
-	LOG_INFO("Processing host image with CUDA\n");
-
-	// Prepare buffers
-    const auto filter_ksize = config.filter_ksize;
-    const auto kernel_v = (1.0f / (filter_ksize * filter_ksize));
-    auto kernel = cv::Mat_<float>(filter_ksize, filter_ksize, kernel_v);
-
-	// Do right processing
-	auto medianed = cpu_median(src, config.median_ksize);
-	auto filtered = cpu_filter(medianed, kernel);
-	auto equalized = cpu_equalize_hist(filtered);
-	
-	return equalized;
-}
-
-//
 // Public functions
 //
 
@@ -48,7 +27,14 @@ void cpu_proc_deinit()
 	LOG_INFO("Deinitializing CPU proc module\n");
 }
 
-Image cpu_process_image(const Image& img, const ProcessConfig& config)
+Image cpu_process_image(const Image& src, const Kernel& kernel, size_t median_ksize)
 {
-	return cpu_process_host_image(img, config);
+	LOG_INFO("Processing host image with CUDA\n");
+
+	// Do right processing
+	auto medianed = cpu_median(src, median_ksize);
+	auto filtered = cpu_filter(medianed, kernel);
+	auto equalized = cpu_equalize_hist(filtered);
+	
+	return equalized;
 }

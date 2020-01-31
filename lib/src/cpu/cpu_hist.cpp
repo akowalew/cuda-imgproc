@@ -8,7 +8,7 @@
 
 #include <cassert>
 
-#include <omp.h>
+#include "log.hpp"
 
 Histogram cpu_calculate_hist(const Image& src)
 {
@@ -157,7 +157,12 @@ void cpu_equalize_hist(Image& dst, const Image& src)
 
 Image cpu_equalize_hist(const Image& src)
 {
-    auto dst = Image(src.rows, src.cols);
+	const auto cols = src.cols;
+	const auto rows = src.rows;
+
+	LOG_INFO("Equalizing histogram on CPU image %dx%d\n", cols, rows);
+
+    auto dst = Image(rows, cols);
 
     cpu_equalize_hist(dst, src);
 

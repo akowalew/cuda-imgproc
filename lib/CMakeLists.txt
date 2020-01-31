@@ -38,6 +38,17 @@ else()
 endif()
 
 ###############################################################################
+# Library dependencies
+###############################################################################
+
+if(BUILD_VERSION STREQUAL CPU)
+    # Use OpenMP on CPU implementation
+    list(APPEND imgproc_LIBRARIES
+        OpenMP::OpenMP_CXX
+    )
+endif()
+
+###############################################################################
 # Library definition
 ###############################################################################
 
@@ -62,7 +73,10 @@ target_compile_definitions(imgproc
 
 target_link_libraries(imgproc
 	PUBLIC
-		${OpenCV_LIBRARIES}
+        ${OpenCV_LIBRARIES}
+
+    PRIVATE
+        ${imgproc_LIBRARIES}
         cuda-samples
 )
 
@@ -156,7 +170,7 @@ if(BUILD_TESTING)
     target_link_libraries(imgproc-test
 	    PRIVATE
 		    imgproc
-            -fopenmp
+            
             doctest::doctest
     )
 
