@@ -126,12 +126,21 @@ void cuda_gen_equalize_lut_kernel(uchar* lut, const uint* hist)
 	// Wait for first thread to finish CDF calculation
 	__syncthreads();
 
-    // Calculate LUT value and store it
 	const auto cdf_v = s_buf[threadIdx.x];
-	const long unsigned int diff = (cdf_v < s_cdf_min) ? 0 : (cdf_v - s_cdf_min);
-	const auto num = (diff * 255);
-	const auto den = (s_buf[255] - s_cdf_min);
-    lut[threadIdx.x] = (num / den);
+
+    // Calculate LUT value and store it
+	if(cdf_v == 0)
+	{
+		lut[threadIdx.x] = 0;
+	}
+	else
+	{
+		const auto cdf_min = s_cdf_min;
+		const long unsigned int diff = (cdf_v - cdf_min);
+		const auto num = (diff * 255);
+		const auto den = (s_buf[255] - cdf_min);
+	    lut[threadIdx.x] = (num / den);
+	}
 }
 
 void cuda_gen_equalize_lut_async(CudaLUT& lut, const CudaHistogram& hist)
