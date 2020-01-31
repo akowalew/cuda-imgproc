@@ -97,10 +97,17 @@ LUT cpu_generate_lut(const CDF& cdf, CDF::value_type cdf_min)
 	for(; cdf_it != cdf_end; ++cdf_it, ++lut_it)
 	{
 		const auto cdf_value = *cdf_it;
-		const auto cdf_diff = (cdf_value - cdf_min);
-		const auto lut_value = ((cdf_diff * MaxValue) / (elems - cdf_min));
-
-		*lut_it = lut_value;
+		if(cdf_value == 0)
+		{
+			*lut_it = 0;
+		}
+		else
+		{
+			const long unsigned int cdf_diff = (cdf_value - cdf_min);
+			const auto num = (cdf_diff * MaxValue);
+			const auto den = (elems - cdf_min);
+			*lut_it = (den == 0) ? 0 : (num / den);
+		}
 	}
 
 	return lut;
@@ -144,6 +151,11 @@ void cpu_equalize_hist(Image& dst, const Image& src)
 	assert(src.cols == dst.cols);
 	assert(src.type() == dst.type());
 
+	const auto cols = src.cols;
+	const auto rows = src.rows;
+
+	LOG_INFO("Equalizing histogram on CPU image %dx%d\n", cols, rows);
+
 	const auto histogram = cpu_calculate_hist(src);
 	const auto cdf = cpu_calculate_cdf(histogram);
 
@@ -157,12 +169,7 @@ void cpu_equalize_hist(Image& dst, const Image& src)
 
 Image cpu_equalize_hist(const Image& src)
 {
-	const auto cols = src.cols;
-	const auto rows = src.rows;
-
-	LOG_INFO("Equalizing histogram on CPU image %dx%d\n", cols, rows);
-
-    auto dst = Image(rows, cols);
+    auto dst = Image(src.rows, src.cols);
 
     cpu_equalize_hist(dst, src);
 
