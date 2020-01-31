@@ -33,15 +33,21 @@ CudaKernel cuda_create_kernel(size_t ksize)
 
 void cuda_free_kernel(CudaKernel& kernel)
 {
-    // Release kernel on the device
-    checkCudaErrors(cudaFree(kernel.data));
+    const auto data = kernel.data;
+
+    LOG_INFO("Releasing CUDA kernel 0x%p\n", data);
+
+    checkCudaErrors(cudaFree(data));
 }
 
 void cuda_host_kernel_register(const Kernel& kernel)
 {
     const auto ksize = kernel.cols;
-    const auto buffer_size = (ksize * ksize * sizeof(float));
     const auto data = kernel.data;
+
+    LOG_INFO("Registering host kernel %lux%lu at 0x%p\n", ksize, ksize, data);
+
+    const auto buffer_size = (ksize * ksize * sizeof(float));
     const auto flags = cudaHostRegisterDefault;
     checkCudaErrors(cudaHostRegister(data, buffer_size, flags));
 }
@@ -49,5 +55,8 @@ void cuda_host_kernel_register(const Kernel& kernel)
 void cuda_host_kernel_unregister(const Kernel& kernel)
 {
     const auto data = kernel.data;
+
+    LOG_INFO("Unregistering host kernel at 0x%p\n", data);
+
     checkCudaErrors(cudaHostUnregister(data));
 }
