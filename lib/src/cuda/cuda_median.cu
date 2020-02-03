@@ -24,12 +24,12 @@ constexpr int Kern_Max = 7;
 // Private functions
 //
 
-__global__ 
+__global__
 static void cuda_median_kernel(
-	uchar* dst, size_t dpitch, 
+	uchar* dst, size_t dpitch,
 	const uchar* src, size_t spitch,
 	size_t cols, size_t rows, size_t ksize)
-{	
+{
 	auto adr = [cols](int x, int y) -> int {
 		return ((y * cols) + x);
 	};
@@ -39,7 +39,7 @@ static void cuda_median_kernel(
 	// (32+14)^2 to circa 2.5 kiB. Mamy lekko 16 kiB pamieci wspoldzielonej
 	__shared__ uchar s_pixbuf[(K+(2* Kern_Max)) * (K+ (2 * Kern_Max))];
 	uchar hist[256] = {0};
-	
+
 	/*
 	x, y - pozycja w calym obrazie
 	x_, y_ - pozycja w shared mem
@@ -47,37 +47,30 @@ static void cuda_median_kernel(
 	*/
 	int x, y, x_, y_;
 
-	// Tylko pierwsze dwa warpy. Ponieważ dotyczy całych warpow, caly warp albo skoczy, albo liczy.
-	if(threadIdx.y <= 1)
 	{
-		x_ = threadIdx.y * 32 + threadIdx.x;
-		x = blockIdx.x * 32 + x_; // Adres w zrodle obrazu	
-		
-		// Tymczasowe uzycie alternatywne. Adres y, ale nie pixela, tylko ksize ponizej niego. 
-		// Liczenie adresu pixela odpowiadajacego watkowi jest ponizej i zawiera ksize.
-		y = (blockIdx.y * K);
+  x_ = (threadIdx.y % 2) * 32 + threadIdx.x;
+  x = blockIdx.x * K + x_;	//Adres w zrodle obrazu
+  int yy = (threadIdx.y / 2) * 3;
+  y = (blockIdx.y * K) + yy; //Zaden watek nie zaladuje wiecej niz 3 pixele.
+  //watki ktore wyjezdzaja za krawedz obrazu, niczego nie laduja.
+  if ((x_ < (K + (2 * ksize))) && (x < cols)) {
 
-		// Watki ktore wyjezdzaja za krawedz obrazu, niczego nie laduja.
-		if((x_ < (K + (2 * ksize))) && (x < cols))
-		{
-			for(int yy = 0; yy < (K + (2 * ksize)); yy++)
-			{		
-				const int y__ = y + yy;
-				if(y__ == rows)
-				{
-					// Nie wyjezdzamy za obraz
-					break;	
-				}
+		if (y == rows || yy == (K + (2 * ksize))) goto sync;// wyjezdzamy za krawedz obrazu zrodlowego albo bufora.
+		s_pixbuf[(yy * (K + (2 * Kern_Max))) + x_] = src[adr(x, y)];
+		yy++; y++;
 
-				s_pixbuf[(yy * (K + (2 * Kern_Max))) + x_] =  src[y__*spitch + x];
-			}
+		if (y == rows || yy == (K + (2 * ksize))) goto sync;// wyjezdzamy za krawedz obrazu zrodlowego albo bufora.
+		s_pixbuf[(yy * (K + (2 * Kern_Max))) + x_] = src[adr(x, y)];
+		yy++; y++;
+
+		if (y == rows || yy == (K + (2 * ksize))) goto sync;// wyjezdzamy za krawedz obrazu zrodlowego albo bufora.
+		s_pixbuf[(yy * (K + (2 * Kern_Max))) + x_] = src[y*spitch + x];
 		}
+	sync: __syncthreads();//Można liczyć, mamy dane w pixbuf
 	}
 
-	//Można liczyć, mamy dane w s_pixbuf
-	__syncthreads();
 
-	//Pozycja w całym obrazie.	
+	//Pozycja w całym obrazie.
 	x = blockIdx.x * blockDim.x + threadIdx.x + ksize;
 	y = blockIdx.y * blockDim.y + threadIdx.y + ksize;
 	if((y >= rows - ksize) || (x >= cols - ksize))
