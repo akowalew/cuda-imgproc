@@ -28,3 +28,4 @@ void cuda_filter_copy_kernel_from_host_async(const Kernel& kernel);
  * @param ksize size of the kernel
  */
 void cuda_filter_async(CudaImage& dst, const CudaImage& src, size_t ksize);
+void cuda_filter_async_prep(const CudaImage& src, size_t ksize);

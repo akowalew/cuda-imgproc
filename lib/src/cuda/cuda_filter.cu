@@ -111,13 +111,8 @@ __global__ static void filter_kernel(
 //     dst_ex[(y)*dpitch_ex + (x)] = static_cast<uchar>(acc);
     dst_ex[(threadIdx.y + blockIdx.y*blockDim.y)*dpitch + (threadIdx.x + blockIdx.x*blockDim.x)] = static_cast<uchar>(acc);
 }
- 
-void cuda_filter_async(CudaImage& dst, const CudaImage& src, size_t ksize)
-{
-    // Ensure proper shapes of images
-    assert(dst.cols == src.cols);
-    assert(dst.rows == src.rows);
 
+void cuda_filter_async_prep(const CudaImage& src, size_t ksize) {
     const auto cols = src.cols;
     const auto rows = src.rows;
     
@@ -129,9 +124,7 @@ void cuda_filter_async(CudaImage& dst, const CudaImage& src, size_t ksize)
     const auto src_ex = cuda_image_sub(g_src_ex, cols_ex, rows_ex);
 
     const auto sdata = (uchar*) src.data;
-    const auto ddata = (uchar*) dst.data;
     const auto spitch = src.pitch;
-    const auto dpitch = dst.pitch;
     const auto sdata_ex = (uchar*) src_ex.data;
     const auto spitch_ex = src_ex.pitch;
 
@@ -179,6 +172,40 @@ void cuda_filter_async(CudaImage& dst, const CudaImage& src, size_t ksize)
         dim_grid_x, dim_grid_y,
         cols_ex, rows_ex,
         cols, rows);
+}
+ 
+void cuda_filter_async(CudaImage& dst, const CudaImage& src, size_t ksize)
+{
+    // Ensure proper shapes of images
+    assert(dst.cols == src.cols);
+    assert(dst.rows == src.rows);
+    
+    const auto cols = src.cols;
+    const auto rows = src.rows;
+    
+    // Padding rows and cols size to kernel size granularity
+    const auto cols_ex = ((cols + (ksize-1) + (K-1)) / K) * K;
+    const auto rows_ex = ((rows + (ksize-1) + (K-1)) / K) * K;
+    
+    // Obtain extended images buffers
+    const auto src_ex = cuda_image_sub(g_src_ex, cols_ex, rows_ex);
+
+    const auto sdata = (uchar*) src.data;
+    const auto ddata = (uchar*) dst.data;
+    const auto spitch = src.pitch;
+    const auto dpitch = dst.pitch;
+    const auto sdata_ex = (uchar*) src_ex.data;
+    const auto spitch_ex = src_ex.pitch;
+
+    // Dimensions of each block (in threads)
+    const auto dim_block_x = K;
+    const auto dim_block_y = K;
+    const auto dim_block = dim3(dim_block_x, dim_block_y);
+
+    // Dimensions of a grid (in blocks)
+    const auto dim_grid_x = ((cols+K-1) / K);
+    const auto dim_grid_y = ((rows+K-1) / K);
+    const auto dim_grid = dim3(dim_grid_x, dim_grid_y);
 
     // Launch filtering kernel
     filter_kernel<<<dim_grid, dim_block>>>(

@@ -66,6 +66,7 @@ static void cuda_process_host_image_async(
 
 	// Do right processing asynchronously
 	cuda_median_async(img_b, img_a, median_ksize);
+	cuda_filter_async_prep(img_b, filter_ksize);
 	cuda_filter_async(img_a, img_b, filter_ksize);
 	cuda_equalize_hist_async(img_b, img_a);
 

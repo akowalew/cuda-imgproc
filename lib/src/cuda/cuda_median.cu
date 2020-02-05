@@ -56,15 +56,15 @@ static void cuda_median_kernel(
   if ((x_ < (K + (2 * ksize))) && (x < cols)) {
 
 		if (y == rows || yy == (K + (2 * ksize))) goto sync;// wyjezdzamy za krawedz obrazu zrodlowego albo bufora.
-		s_pixbuf[(yy * (K + (2 * Kern_Max))) + x_] = src[adr(x, y)];
+		s_pixbuf[(yy * (K + (2 * KSizeMax))) + x_] = src[adr(x, y)];
 		yy++; y++;
 
 		if (y == rows || yy == (K + (2 * ksize))) goto sync;// wyjezdzamy za krawedz obrazu zrodlowego albo bufora.
-		s_pixbuf[(yy * (K + (2 * Kern_Max))) + x_] = src[adr(x, y)];
+		s_pixbuf[(yy * (K + (2 * KSizeMax))) + x_] = src[adr(x, y)];
 		yy++; y++;
 
 		if (y == rows || yy == (K + (2 * ksize))) goto sync;// wyjezdzamy za krawedz obrazu zrodlowego albo bufora.
-		s_pixbuf[(yy * (K + (2 * Kern_Max))) + x_] = src[y*spitch + x];
+		s_pixbuf[(yy * (K + (2 * KSizeMax))) + x_] = src[y*spitch + x];
 		}
 	sync: __syncthreads();//Można liczyć, mamy dane w pixbuf
 	}
