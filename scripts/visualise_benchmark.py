@@ -41,7 +41,7 @@ if __name__ == "__main__":
                 dimY = int(name[2])
                 dimK = int(name[3])
                 
-                scales[dimX*dimY*dimK*dimK] = i
+                scales[2*(dimX+dimK-1)*(dimY+dimK-1)*dimK*dimK] = i
                 print(function+'_'+method, dimX*dimY, dimK, time)
                 
                 data_line.append(time)

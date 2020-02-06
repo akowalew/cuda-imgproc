@@ -121,6 +121,7 @@ if(BUILD_BENCHMARKING)
     else()
         list(APPEND imgproc-bench_SOURCES
             bench/cpu/cpu_hist_bench.cpp
+            bench/cpu/cpu_filter_bench.cpp
         )
     endif()
 

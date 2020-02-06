@@ -1,0 +1,27 @@
+2020-02-06 01:09:19
+Running bin/imgproc-bench
+Run on (6 X 4300 MHz CPU s)
+CPU Caches:
+  L1 Data 32K (x6)
+  L1 Instruction 32K (x6)
+  L2 Unified 256K (x6)
+  L3 Unified 9216K (x1)
+name,iterations,real_time,cpu_time,time_unit,bytes_per_second,items_per_second,label,error_occurred,error_message
+"cpu_filter/320/240/3/real_time",1100,622103,621872,ns,,,,,
+"cpu_filter/640/480/3/real_time",283,2.47043e+06,2.46944e+06,ns,,,,,
+"cpu_filter/1024/768/3/real_time",109,6.29787e+06,6.29542e+06,ns,,,,,
+"cpu_filter/1920/1080/3/real_time",42,1.63399e+07,1.63343e+07,ns,,,,,
+"cpu_filter/2560/1440/3/real_time",24,2.9446e+07,2.94349e+07,ns,,,,,
+"cpu_filter/3840/2160/3/real_time",10,6.68829e+07,6.68552e+07,ns,,,,,
+"cpu_filter/320/240/7/real_time",250,2.77102e+06,2.77019e+06,ns,,,,,
+"cpu_filter/640/480/7/real_time",64,1.09891e+07,1.09853e+07,ns,,,,,
+"cpu_filter/1024/768/7/real_time",25,2.85792e+07,2.8569e+07,ns,,,,,
+"cpu_filter/1920/1080/7/real_time",9,7.54973e+07,7.54708e+07,ns,,,,,
+"cpu_filter/2560/1440/7/real_time",5,1.34451e+08,1.34407e+08,ns,,,,,
+"cpu_filter/3840/2160/7/real_time",2,3.05406e+08,3.05307e+08,ns,,,,,
+"cpu_filter/320/240/15/real_time",50,1.38642e+07,1.38604e+07,ns,,,,,
+"cpu_filter/640/480/15/real_time",12,6.00561e+07,6.00318e+07,ns,,,,,
+"cpu_filter/1024/768/15/real_time",4,1.55564e+08,1.55512e+08,ns,,,,,
+"cpu_filter/1920/1080/15/real_time",2,4.17918e+08,4.17767e+08,ns,,,,,
+"cpu_filter/2560/1440/15/real_time",1,7.39105e+08,7.3885e+08,ns,,,,,
+"cpu_filter/3840/2160/15/real_time",1,1.66239e+09,1.66185e+09,ns,,,,,
